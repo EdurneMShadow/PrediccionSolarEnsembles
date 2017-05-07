@@ -5,56 +5,56 @@ import numpy as np
 import sunrise as sr
 import utilities as ut
 
-def load_CS(df, shft=1):
-     cs_file = '/scratch/gaa/alecat/data/clear_sky/cs_15min.npy'
-     cs_columns_file = '/scratch/gaa/alecat/data/clear_sky/cs_15min_cols.npy'
-     data = np.load(cs_file)
-     columns = np.load(cs_columns_file)
-     index = data[:, 0].astype(int)
-     df_cs = pd.DataFrame(data[:, 1:], columns=columns, index=index)
-     if shft > 0:
-         df_cs_k = shift_df(df_cs, shft)
-         df_cs_k.columns = list(map(lambda c: c + '-K', df_cs_k.columns))
-         df_cs_total = pd.concat([df_cs, df_cs_k], axis=1, join='inner')
-     else:
-         df_cs_total = df_cs
+def determinista_a_trihorario_acc():
+    # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.
+    matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/data/solar_ecmwf/deterministic/myp/','/scratch/gaa/data/solar_ecmwf/',ifexists=True,model='deterministic',suffix='.det')
+    matrix.dataMatrix #He creado un objeto de la clase DataMatrix, que tiene un atributo dataMatrix.
+    matrix.dataMatrix.columns #Accede a las columnas de la matriz
 
-     if not df.empty:
-         return df.join(df_cs_total)
-     return df_cs_total
+    land_grid=dm.select_pen_grid() #Selecciona solo las longitudes y latitudes de España.
 
-#-------------------------------------------------------------------------------
+    pen_cols=matrix.query_cols(latlons=land_grid,tags=['FDIR','SSR','SSRC','CDIR','SSRD']) #Estoy seleccionando solo las variables de radiacion (array)
+    rad_var=matrix.dataMatrix[pen_cols] #submatriz solo con las columnas de las variables de radiación.
+    dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
+    index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
+    rad_var_3h=rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
+    rad_var_3h=rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
 
-# Estas líneas pasan el modelo determinista horario acumulado a trihorario.
-matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/alecat/data/ecmwf/deterministic/myp/','/scratch/gaa/alecat/data/ecmwf/',ifexists=True,model='deterministic',suffix='.det')
-matrix.dataMatrix #He creado un objeto de la clase DataMatrix, que tiene un atributo dataMatrix.
-matrix.dataMatrix.columns #Accede a las columnas de la matriz
+    index_day=sr.filter_daylight_hours(index)
 
-land_grid=dm.select_pen_grid() #Selecciona solo las longitudes y latitudes de España.
+    # nights=[]
+    # for i in index:
+    #     if i not in index_day:
+    #         nights.append(i)
 
-pen_cols=matrix.query_cols(latlons=land_grid,tags=['FDIR','SSR','SSRC','CDIR','SSRD']) #Estoy seleccionando solo las variables de radiacion (array)
-rad_var=matrix.dataMatrix[pen_cols] #submatriz solo con las columnas de las variables de radiación.
-dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
-index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
-rad_var_3h=rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
-rad_var_3h=rad_var_3h.diff()
+    index_night = [i for i in index if i not in index_day]
 
-index_day=sr.filter_daylight_hours(index)
+    rad_var_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
 
-# nights=[]
-# for i in index:
-#     if i not in index_day:
-#         nights.append(i)
+'''Estas líneas pasan el clear-sky horario no acumulado a horario acumulado.'''
+def CS_a_acumulado():
+    df = pd.DataFrame()
+    cs = ut.load_CS(df)
+    #Seleccionar solo las columnas de la península
+    rejilla_peninsula = dm.select_pen_grid()
+    columnas_cs = []
+    #TODO: preguntar por cómo sacar la peninsula.
+    #Última situación: rejilla_peninsula + CS H no es ninguna columna
+    for i in rejilla_peninsula:
+        col = str(i)+' CS H'
+        columnas_cs.append(col)
 
-index_night = [i for i in index if i not in index_day]
-
-rad_var_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
-
-
-#Estas líneas pasan el clear-sky horario no acumulado a trihorario.
-
-cs = load_CS()
-
-#Interpolar el determinista trihorario a horario.
-
-cs = pd.read_csv('/scratch/gaa/alecat/data/2015123100.cs_3h.csv')
+    #Agregar
+    dia = 0
+    #NOTE: en el fichero cs la primera hora es uno y no cero.
+    for i in range(len(cs)): #TODO: cambiar cs por el nombre de la variable de la peninsula
+        if dia<24:
+            if i<len(cs)-1:
+                cs.values[i+1]=cs.values[i+1] + cs.values[i]
+                dia+=1
+        else:
+            dia = 0
+    #Coger de 3 en 3h
+    dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
+    index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+    cs_3h = cs.loc[index]
