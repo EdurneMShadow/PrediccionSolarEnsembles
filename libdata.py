@@ -376,7 +376,10 @@ def disaggregate(dm, variables):
     df = dm.dataMatrix
     variables_cols = dm.query_cols(grid=dm.grid, tags=variables)
     df.loc[:, variables_cols] = df.loc[:, variables_cols].diff()
-    df.loc[df[variables_cols] < 0] = 0
+    df[df[variables_cols] < 0] = 0
+    dark_idx = sr.filter_dark_hours(df.index)
+    df.loc[dark_idx, variables_cols] = 0
+    # df.replace(np.nan, 0)
     return df
 
 
@@ -447,132 +450,3 @@ def compute_modules(m, res=0.125, v100=False):
     if v100:
         tags += ['v100']
     m.dataMatrix = m.dataMatrix[m.query_cols(grid=m.grid, tags=tags)]
-
-
-# main
-pathin = "/scratch/gaa/alecat/data/eumetsat/processed/myp/15min/"
-pathout = "/scratch/gaa/alecat/data/eumetsat/processed/myp/15min/"
-prodsfile = "/scratch/gaa/alecat/data/prodsTotal.csv"
-shp = "/scratch/gaa/alecat/dev/shapefiles/ESP_adm1.shp"
-variables = ['IR_016 R']
-variables_ext = ['VIS008 R', 'IR_016 R', 'IR_039 R', 'IR_039 K']
-variables_nwp = ['SSRD', 'TCC', 'T2M', 'SSRC', 'v10']
-
-# load data
-m1, prods, land_grid = load_data(pathin, pathout, shp, prodsfile, 2013)
-m2, _, _ = load_data(
-    pathin, pathout, shp, prodsfile, 2014, land_grid=land_grid, prods=False)
-m3, _, _ = load_data(
-    pathin, pathout, shp, prodsfile, 2015, land_grid=land_grid, prods=False)
-
-nwp1 = load_nwp_data('/scratch/gaa/alecat/data/ecmwf/',
-                     '/scratch/gaa/alecat/data/ecmwf/', 2013)
-nwp2 = load_nwp_data('/scratch/gaa/alecat/data/ecmwf/',
-                     '/scratch/gaa/alecat/data/ecmwf/', 2014)
-nwp3 = load_nwp_data('/scratch/gaa/alecat/data/ecmwf/',
-                     '/scratch/gaa/alecat/data/ecmwf/', 2015)
-
-dfs_train = {}
-dfs_val = {}
-dfs_test = {}
-
-for shft in range(4):
-    dfs_train[shft] = merge_satellite_nwp_prods(
-        m1, nwp1, prods, land_grid, variables_ext, variables_nwp, shft)
-    dfs_val[shft] = merge_satellite_nwp_prods(
-        m2, nwp2, prods, land_grid, variables_ext, variables_nwp, shft)
-    dfs_test[shft] = merge_satellite_nwp_prods(
-        m3, nwp3, prods, land_grid, variables_ext, variables_nwp, shft)
-    # dfs_train[shft] = load_df(m1, land_grid, prods, variables_ext, shft)
-    # dfs_val[shft] = load_df(m2, land_grid, prods, variables_ext, shft)
-    # dfs_test[shft] = load_df(m3, land_grid, prods, variables_ext, shft)
-
-# CS model
-models = {
-    0: {
-        0: list(range(8, 21))
-    },
-    1: {
-        0: list(range(8, 21))
-    },
-    2: {
-        0: list(range(8, 21))
-    },
-    3: {
-        0: list(range(8, 21))
-    }
-}
-
-for shft in models:
-    for model in models[shft]:
-        scalerX = None
-        for dfs, suff in zip([dfs_train, dfs_val, dfs_test],
-                             ["train", "val", "test"]):
-            # path = "/scratch/gaa/data/dare/dareCSh{0}{1}.{2}"
-            path = "/scratch/gaa/alecat/data/satellite_nwp_joined/{0}{1}_extended.{2}"
-            output = path.format(shft, model, suff)
-            dfs[shft] = load_CS(dfs[shft], shft)
-            scalerX = load_store_X_Y(
-                dfs[shft], models[shft][model], output, scalerX, standard=True)
-
-# building the prods preds dataframe
-dfs_prods_preds = load_preds(
-    dfs_test, "/home/proyectos/ada2/alecat/experiments/results/lasso/", "npy",
-    ["Pred"], models)
-# dfs_coefs = load_preds(dfs_train,
-#                        "/scratch/gaa/alecat/org/data/results/lasso/15minH/raw/",
-#                        "coef", ["Coef"], models)
-
-# set dark hours to zero
-for shft in sorted(dfs_prods_preds.keys()):
-    for model in sorted(dfs_prods_preds[shft]):
-        ix = sr.filter_daylight_hours(dfs_prods_preds[shft][model].index)
-        for index in sorted(set(dfs_test[shft].index) - set(ix)):
-            dfs_prods_preds[shft][model].loc[index] = 0
-
-# save and store dataframes
-for shft in sorted(dfs_prods_preds.keys()):
-    for model in sorted(dfs_prods_preds[shft]):
-        dfs_prods_preds[shft][model].sort_index(inplace=True)
-        dfs_prods_preds[shft][model].to_csv(
-            "/home/proyectos/ada2/alecat/experiments/results/lasso/df/df_preds_h{0}{1}.csv".
-            format(shft, model))
-        dfs_prods_preds[shft][model] = dfs_prods_preds[shft][model].join(
-            prods, how='inner')
-        dfs_prods_preds[shft][model] = dfs_prods_preds[shft][model].clip(0,
-                                                                         105)
-        dfs_prods_preds[shft][model].to_csv(
-            "/home/proyectos/ada2/alecat/experiments/results/lasso/df/df_prods_preds_h{0}{1}.csv".
-            format(shft, model))
-
-# report errors
-for h in models:
-    init = 8
-    end = 21
-    print("Errors h{}0 hours {}-{}: {}".format(
-        h, init, end - 1,
-        error_hours(dfs_prods_preds[h][0], hours=range(init, end))))
-
-# import pandas as pd
-# import glob
-# import matplotlib.pyplot as plt
-# from matplotlib import cm
-
-# for f in glob.glob('/home/alex/org/*log*.csv'):
-#     log = pd.read_csv(f, index_col=0)
-
-#     cs = log['C'].reshape((10, 10))
-#     values = log['value'].astype(float).reshape((10, 10))
-#     gs = log['gamma'].reshape((10, 10))
-#     es = log['epsilon'].reshape((10, 10))
-#     levels = np.arange(values.min(), values[values < 3].max(), 0.01)
-
-#     for p1, p2, t1, t2 in [[cs, gs, 'log C', 'log gamma'],
-#                            [cs, es, 'log C', 'log epsilon'],
-#                            [gs, es, 'log gamma', 'log epsilon']]:
-#         plt.clf()
-#         CS = plt.contourf(p1, p2, values, levels=levels, cmap=cm.jet)
-#         plt.colorbar(CS)
-#         plt.title('Contours of SVM tuning response surface')
-#         plt.xlabel(t1)
-#         plt.ylabel(t2)

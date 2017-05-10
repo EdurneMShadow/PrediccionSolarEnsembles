@@ -5,6 +5,11 @@ import numpy as np
 import sunrise as sr
 import utilities as ut
 
+def guardar_matriz(matriz, fecha, sufijo=''):
+    nombre_fichero = '/scratch/gaa/edcastil/'+ str(fecha) + '.mdata' + sufijo
+    datos = np.hstack([matriz.index[:,np.newaxis], matriz.values])
+    np.save(nombre_fichero, datos)
+
 def determinista_a_trihorario_acc():
     # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.
     matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/data/solar_ecmwf/deterministic/myp/','/scratch/gaa/data/solar_ecmwf/',ifexists=True,model='deterministic',suffix='.det')
@@ -18,7 +23,7 @@ def determinista_a_trihorario_acc():
     dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
     index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
     rad_var_3h=rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
-    rad_var_3h=rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
+    #rad_var_3h=rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
 
     index_day=sr.filter_daylight_hours(index)
 
@@ -30,24 +35,26 @@ def determinista_a_trihorario_acc():
     index_night = [i for i in index if i not in index_day]
 
     rad_var_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
+    fecha = matrix.date.strftime(matrix.date_format)
+    guardar_matriz(rad_var_3h, fecha, suffix=".det_3h_acc")
 
 '''Estas líneas pasan el clear-sky horario no acumulado a horario acumulado.'''
 def CS_a_acumulado():
     df = pd.DataFrame()
-    cs = ut.load_CS(df)
+    cs = ut.load_CS(df, shft=0)
+
     #Seleccionar solo las columnas de la península
-    rejilla_peninsula = dm.select_pen_grid()
-    columnas_cs = []
-    #TODO: preguntar por cómo sacar la peninsula.
-    #Última situación: rejilla_peninsula + CS H no es ninguna columna
-    for i in rejilla_peninsula:
-        col = str(i)+' CS H'
-        columnas_cs.append(col)
+    #NOTE: No hace falta filtrar el CS por península, porque al cargarlo con shft=0
+    #      las columnas recuperadas coinciden con las de la península
+    # rejilla_peninsula = dm.select_pen_grid()
+    # cs_peninsula = pd.DataFrame()
+    # for i in rejilla_peninsula:
+    #     col = '(' + str(i[1]) + ', ' + str(i[0]) + ')' +  ' CS H'
+    #     cs_peninsula[col] = cs[col]
 
     #Agregar
     dia = 0
-    #NOTE: en el fichero cs la primera hora es uno y no cero.
-    for i in range(len(cs)): #TODO: cambiar cs por el nombre de la variable de la peninsula
+    for i in range(len(cs)):
         if dia<24:
             if i<len(cs)-1:
                 cs.values[i+1]=cs.values[i+1] + cs.values[i]
@@ -58,3 +65,4 @@ def CS_a_acumulado():
     dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
     index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
     cs_3h = cs.loc[index]
+    cs_3h.to_csv('cs_3h_acc.csv')
