@@ -13,19 +13,19 @@ def guardar_matriz(matriz, fecha, sufijo=''):
 def determinista_a_trihorario_acc():
     # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.
     matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/data/solar_ecmwf/deterministic/myp/','/scratch/gaa/data/solar_ecmwf/',ifexists=True,model='deterministic',suffix='.det')
-    matrix.dataMatrix #He creado un objeto de la clase DataMatrix, que tiene un atributo dataMatrix.
-    matrix.dataMatrix.columns #Accede a las columnas de la matriz
+    #matrix.dataMatrix #He creado un objeto de la clase DataMatrix, que tiene un atributo dataMatrix.
+    #matrix.dataMatrix.columns #Accede a las columnas de la matriz
 
-    land_grid=dm.select_pen_grid() #Selecciona solo las longitudes y latitudes de España.
+    land_grid = dm.select_pen_grid() #Selecciona solo las longitudes y latitudes de España.
 
-    pen_cols=matrix.query_cols(latlons=land_grid,tags=['FDIR','SSR','SSRC','CDIR','SSRD']) #Estoy seleccionando solo las variables de radiacion (array)
-    rad_var=matrix.dataMatrix[pen_cols] #submatriz solo con las columnas de las variables de radiación.
-    dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
-    index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
-    rad_var_3h=rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
-    #rad_var_3h=rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
+    pen_cols = matrix.query_cols(latlons=land_grid,tags=['FDIR','SSR','SSRC','CDIR','SSRD']) #Estoy seleccionando solo las variables de radiacion (array)
+    rad_var = matrix.dataMatrix[pen_cols] #submatriz solo con las columnas de las variables de radiación.
+    dates = pd.date_range('20150101','20160101',freq='3H')[:-1]
+    index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
+    rad_var_3h = rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
+    rad_var_3h = rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
 
-    index_day=sr.filter_daylight_hours(index)
+    index_day = sr.filter_daylight_hours(index)
 
     # nights=[]
     # for i in index:
@@ -36,7 +36,7 @@ def determinista_a_trihorario_acc():
 
     rad_var_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     fecha = matrix.date.strftime(matrix.date_format)
-    guardar_matriz(rad_var_3h, fecha, suffix=".det_3h_acc")
+    guardar_matriz(rad_var_3h, fecha, sufijo=".det_3h_acc")
 
 '''Estas líneas pasan el clear-sky horario no acumulado a horario acumulado.'''
 def CS_a_acumulado():
@@ -61,8 +61,16 @@ def CS_a_acumulado():
                 dia+=1
         else:
             dia = 0
+
     #Coger de 3 en 3h
     dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
     index=np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
     cs_3h = cs.loc[index]
+    cs_3h = cs_3h.diff()
+
+    #Poner horas de noche a cero
+    index_day = sr.filter_daylight_hours(index)
+    cs_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     cs_3h.to_csv('cs_3h_acc.csv')
+
+#determinista_a_trihorario_acc()
