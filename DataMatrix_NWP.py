@@ -14,6 +14,24 @@ nwp_ensembles_tags = [
     'FDIR', 'CDIR', 'TCC', 'U10', 'V10', 'T2M', 'SSRD', 'SSR'
 ]
 
+def query_cols(grid=None, latlons=None, tags=[]):
+    '''
+    Generates a list of the tags used to address each of the columns
+    of the pandas DataFrame.
+
+    Each tag is the string composition of the coordinates at the
+    point and the name of the variable it refers to.
+    '''
+    if grid:
+        lon_l, lon_r = grid.get_lons()
+        lat_l, lat_r = grid.get_lats()
+        res = grid.get_res()
+        latlons = [(i, j)
+                   for i in np.arange(lat_l, lat_r + res, res)
+                   for j in np.arange(lon_l, lon_r + res, res)]
+
+    return np.array([['({0}, {1}) {2}'.format(j, i, tag) for tag in tags]
+                     for i, j in latlons]).flatten()
 
 def shape_data(data, lon_l, lon_r, lat_l, lat_r, variables, nsteps):
     idxlon = np.logical_and(data[:, 0] >= lon_l, data[:, 0] <= lon_r)
@@ -366,25 +384,6 @@ class DataMatrix(object):
                 # index = index[:-1]
 
         return sorted(index)
-
-    def query_cols(self, grid=None, latlons=None, tags=[]):
-        '''
-        Generates a list of the tags used to address each of the columns
-        of the pandas DataFrame.
-
-        Each tag is the string composition of the coordinates at the
-        point and the name of the variable it refers to.
-        '''
-        if grid:
-            lon_l, lon_r = grid.get_lons()
-            lat_l, lat_r = grid.get_lats()
-            res = grid.get_res()
-            latlons = [(i, j)
-                       for i in np.arange(lat_l, lat_r + res, res)
-                       for j in np.arange(lon_l, lon_r + res, res)]
-
-        return np.array([['({0}, {1}) {2}'.format(j, i, tag) for tag in tags]
-                         for i, j in latlons]).flatten()
 
     def query_subgrid(self, grid=None, latlons=None, inplace=False):
         '''

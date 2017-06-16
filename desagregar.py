@@ -29,7 +29,6 @@ def determinista_a_trihorario_acc():
     #Agregar: sumar una fila con la anterior. En la última fila se tendrá la acumulación de todas las anteriores
     dia = 1
     for i in range(len(rad_var)-1):
-        print(dia)
         if dia<24:
             rad_var.values[i+1] = rad_var.values[i+1] + rad_var.values[i]
             dia+=1
@@ -91,7 +90,7 @@ def CS_a_acumulado():
     index_day = sr.filter_daylight_hours(index)
     cs_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     cs_3h.to_csv('cs_3h_acc.csv')
-
+'''
 def interpolacion():
     dates = pd.date_range('20150101','20160101',freq='3H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
@@ -117,3 +116,43 @@ def interpolacion():
         rad_acc = rad_var_3h.loc[indice]
         fila = cs_horario/cs_acc*rad_acc
         r_pred.loc[indice] = fila
+'''
+def interpolacion(cs, cs_3h, r_3h):
+    dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
+    index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+
+    latlon = dm.select_pen_grid()
+    tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC']
+    columnas = dm.query_cols(latlons = latlon, tags=tags)
+    df_interpolado = pd.DataFrame(index = index, columns = columnas)
+    var = 0
+    for i in index:
+        print('index = ' + str(i))
+        fila = []
+        for j in latlon:
+            print('latlon = ' + str(j))
+            columna_cs = '(' + str(j[1]) + ', ' + str(j[0]) + ') CS H'
+            v_cs = cs[columna_cs].loc[i] #selecciona la fila
+            terminacion = str(i)[8:]
+            if int(terminacion) > var:
+                if var == 21:
+                    var = 0
+                else:
+                    var+=3
+            if len(str(var)) < 2:
+                var_string = '0' + str(var)
+            else:
+                var_string = str(var)
+            indice = int(str(i)[:8] + var_string)
+            v_cs_3h = cs_3h[columna_cs].loc[indice]
+            conjunto_rad = []
+            cabecera_columna = '(' + str(j[0]) + ', ' + str(j[1]) + ') '
+            for k in tags:
+                print(k)
+                columna_rad = cabecera_columna + k
+                v_r_3h = r_3h[columna_rad].loc[indice]
+                print(str(v_cs) + '/ ' + str(v_cs_3h) + '/ ' + str(v_r_3h))
+                conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
+            fila = fila + conjunto_rad
+        df_interpolado.loc[i] = fila
+    return df_interpolado
