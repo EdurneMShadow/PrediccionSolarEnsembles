@@ -231,7 +231,7 @@ class DataMatrix(object):
         if not latlons:
             latlons = self.grid.get_lats_lons()
 
-        self.cols = self.query_cols(latlons=latlons, tags=self.tags)
+        self.cols = query_cols(latlons=latlons, tags=self.tags)
 
         if os.path.isfile(self.file) and ifexists:
             data = np.load(self.file)
@@ -394,7 +394,7 @@ class DataMatrix(object):
         resulting submatrix.
         '''
         if grid is not None or latlons is not None:
-            result = self.dataMatrix.loc[:, self.query_cols(
+            result = self.dataMatrix.loc[:, query_cols(
                 grid=grid, latlons=latlons, tags=self.tags)]
         else:
             result = self.dataMatrix

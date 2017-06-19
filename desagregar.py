@@ -4,7 +4,16 @@ import pandas as pd
 import numpy as np
 import sunrise as sr
 import libdata as ut
+from __future__ import division
 
+
+#latlon = dm.select_pen_grid()
+#matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/edcastil/','/scratch/gaa/edcastil/',ifexists=True,model='deterministic',
+#suffix='.det_3h_acc', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
+
+'''Este método crea dos ficheros .npy, uno con los datos y otro con los nombres de las columnas de la matriz que se
+le haya pasado por parámetro. La fecha y el sufijo se usan para la creación del nombre del fichero según el formato:
+fecha_ultima_hora.mdata.sufijo y fecha_ultima_hora.mdata.sufijo.columns para el fichero de las columnas.'''
 def guardar_matriz(matriz, fecha, sufijo=''):
     nombre_fichero = '/scratch/gaa/edcastil/'+ str(fecha) + '.mdata' + sufijo
     datos = np.hstack([matriz.index[:,np.newaxis], matriz.values])
@@ -14,6 +23,14 @@ def guardar_matriz(matriz, fecha, sufijo=''):
     nombre_fichero_columnas = nombre_fichero + '.columns'
     np.save(nombre_fichero_columnas,columnas)
 
+
+'''Este método lee la matriz determinista horaria desacumulada que se encuentra en data/solar_ecmwf y la transforma en trihoraria
+acumulada. Se ha usado para comprobar que la interpolación mediante clear-sky es factible. Lo que se ha hecho es:
+- Seleccionar las longitudes y latidudes de la península, así como las variables de radiación que queremos interpolar.
+- Acumular la matriz sumando las filas de 24 en 24.
+- Seleccionar los índices trihorarios.
+- Seleccionar las horas de noche y ponerlas a cero.
+Finalmente se devuelve la nueva matriz, además de guardarla en un fichero .npy en edcastil'''
 def determinista_a_trihorario_acc():
     # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.+
     tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC']
@@ -35,13 +52,14 @@ def determinista_a_trihorario_acc():
         else:
             dia = 1
 
-
+    #Selección de los índices trihorarios
     dates = pd.date_range('20150101','20160101',freq='3H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
 
     rad_var_3h = rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
     rad_var_3h = rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
 
+    #Poner las horas de noche a cero.
     index_day = sr.filter_daylight_hours(index)
 
     # nights=[]
@@ -56,7 +74,9 @@ def determinista_a_trihorario_acc():
     guardar_matriz(rad_var_3h, fecha, sufijo=".det_3h_acc")
     return rad_var_3h
 
-'''Estas líneas pasan el clear-sky horario no acumulado a horario acumulado.'''
+
+'''Este método pasa el clear-sky horario no acumulado a trihorario acumulado. El procedimiento seguido es el mismo
+que en el método anterior.'''
 def CS_a_acumulado():
     df = pd.DataFrame()
     cs = ut.load_CS(df, shft=0)
@@ -90,33 +110,7 @@ def CS_a_acumulado():
     index_day = sr.filter_daylight_hours(index)
     cs_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     cs_3h.to_csv('cs_3h_acc.csv')
-'''
-def interpolacion():
-    dates = pd.date_range('20150101','20160101',freq='3H')[:-1]
-    index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
-    cs_h = cs.loc[index]
 
-    r_pred = pd.DataFrame(index=cs_h.index, columns=rad_var_3h.columns)
-
-    var = 0
-    for i in cs_h.index:
-        cs_horario = cs_h.loc[i]
-        terminacion = str(i)[8:]
-        if int(terminacion) > var:
-            if var == 21:
-                var = 0
-            else:
-                var+=3
-        if len(str(var)) < 2:
-            var_string = '0' + str(var)
-        else:
-            var_string = str(var)
-        indice = int(str(i)[:8] + var_string)
-        cs_acc = cs_3h.loc[indice]
-        rad_acc = rad_var_3h.loc[indice]
-        fila = cs_horario/cs_acc*rad_acc
-        r_pred.loc[indice] = fila
-'''
 def interpolacion(cs, cs_3h, r_3h):
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
@@ -152,7 +146,13 @@ def interpolacion(cs, cs_3h, r_3h):
                 columna_rad = cabecera_columna + k
                 v_r_3h = r_3h[columna_rad].loc[indice]
                 print(str(v_cs) + '/ ' + str(v_cs_3h) + '/ ' + str(v_r_3h))
-                conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
+                if v_cs_3h == 0.0: #NOTE Evita la división por cero.
+                    conjunto_rad.append(0)
+                else:
+                    conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
             fila = fila + conjunto_rad
         df_interpolado.loc[i] = fila
+
+    fecha = '2015123100'
+    guardar_matriz(df_interpolado, fecha, sufijo=".det_interpolado")
     return df_interpolado
