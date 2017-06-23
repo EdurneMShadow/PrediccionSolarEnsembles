@@ -149,10 +149,31 @@ def interpolacion(cs, cs_3h, r_3h):
                 if v_cs_3h == 0.0: #NOTE Evita la división por cero.
                     conjunto_rad.append(0)
                 else:
-                    conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
+                    conjunto_rad.append(float(v_cs/v_cs_3h*v_r_3h))
             fila = fila + conjunto_rad
         df_interpolado.loc[i] = fila
-
+    index_day = sr.filter_daylight_hours(index)
+    index_night = [i for i in index if i not in index_day]
+    df_interpolado.loc[index_night] = 0
     fecha = '2015123100'
     guardar_matriz(df_interpolado, fecha, sufijo=".det_interpolado")
     return df_interpolado
+
+'''Este método calcula tanto el MAE de cada columna como el MAE global dados dos conjuntos a comparar.
+Para el cálculo no se tienen en cuenta las horas de noche. Procedimiento:
+- En primer lugar se calcula la resta absoluta entre los dos df, dando un valor para cada posición de la tabla.
+- Después se suman esos valores por columnas y se divide por el n_filas para tener un valor de mae para cada columna.
+- Finalmente se hace la media de todos los maes para tener el mae global.
+Se devuelve un diccionario con los dos maes.
+'''
+def MAE(df_interpolado, df_original):
+    hours_day = sr.filter_daylight_hours(index)
+    hours_night = [i for i in index if i not in hours_day]
+    df_interpolado = df_interpolado.drop(hours_night)
+    df_original = df_original.drop(hours_night)
+
+    resta_absoluta = np.abs(df_original - df_interpolado)
+    mae_columnas = resta_absoluta.sum/len(df_original)
+    mae_global = mae_columnas.mean()
+
+    return {'mae_columnas':mae_columnas, 'mae_global':mae_global}
