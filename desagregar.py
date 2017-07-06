@@ -4,18 +4,21 @@ import pandas as pd
 import numpy as np
 import sunrise as sr
 import libdata as ut
-from __future__ import division
 
+#%load_ext autoreload
+#%autoreload 2
 
+'''Ejemplos de cargas de matrices'''
+#matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/edcastil/','/gaa/home/edcastil/',ifexists=True,model='deterministic',suffix='.det_3h_acc', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
+
+#matrix_original = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, model='deterministic', suffix='.det_noacc_vmodule')
 #latlon = dm.select_pen_grid()
-#matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/edcastil/','/scratch/gaa/edcastil/',ifexists=True,model='deterministic',
-#suffix='.det_3h_acc', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
-
+#matrix_interpolada = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/edcastil/', '/gaa/home/edcastil/', ifexists = True, model='deterministic', suffix='.det_interpolado', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
 '''Este método crea dos ficheros .npy, uno con los datos y otro con los nombres de las columnas de la matriz que se
 le haya pasado por parámetro. La fecha y el sufijo se usan para la creación del nombre del fichero según el formato:
 fecha_ultima_hora.mdata.sufijo y fecha_ultima_hora.mdata.sufijo.columns para el fichero de las columnas.'''
 def guardar_matriz(matriz, fecha, sufijo=''):
-    nombre_fichero = '/scratch/gaa/edcastil/'+ str(fecha) + '.mdata' + sufijo
+    nombre_fichero = '/gaa/home/edcastil/'+ str(fecha) + '.mdata' + sufijo
     datos = np.hstack([matriz.index[:,np.newaxis], matriz.values])
     columnas = matriz.columns
     np.save(nombre_fichero, datos)
@@ -34,7 +37,7 @@ Finalmente se devuelve la nueva matriz, además de guardarla en un fichero .npy 
 def determinista_a_trihorario_acc():
     # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.+
     tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC']
-    matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/scratch/gaa/data/solar_ecmwf/','/scratch/gaa/data/solar_ecmwf/',ifexists=True,model='deterministic',suffix='.det_noacc_vmodule')
+    matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/data/solar_ecmwf/','/gaa/home/data/solar_ecmwf/',ifexists=True,model='deterministic',suffix='.det_noacc_vmodule')
     #matrix.dataMatrix #He creado un objeto de la clase DataMatrix, que tiene un atributo dataMatrix.
     #matrix.dataMatrix.columns #Accede a las columnas de la matriz
     m = matrix.dataMatrix
@@ -113,15 +116,16 @@ def CS_a_acumulado():
 
 def interpolacion(cs, cs_3h, r_3h):
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
-    index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+    index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) #índice horario
 
-    latlon = dm.select_pen_grid()
-    tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC']
+    latlon = dm.select_pen_grid() #latitudes y longitudes de la península
+    tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'] #variables de radiación
     columnas = dm.query_cols(latlons = latlon, tags=tags)
     df_interpolado = pd.DataFrame(index = index, columns = columnas)
+    print('df creado!')
     var = 0
     for i in index:
-        print('index = ' + str(i))
+        print('i: ' + str(i))
         fila = []
         for j in latlon:
             print('latlon = ' + str(j))
@@ -142,20 +146,23 @@ def interpolacion(cs, cs_3h, r_3h):
             conjunto_rad = []
             cabecera_columna = '(' + str(j[0]) + ', ' + str(j[1]) + ') '
             for k in tags:
-                print(k)
                 columna_rad = cabecera_columna + k
                 v_r_3h = r_3h[columna_rad].loc[indice]
                 print(str(v_cs) + '/ ' + str(v_cs_3h) + '/ ' + str(v_r_3h))
                 if v_cs_3h == 0.0: #NOTE Evita la división por cero.
-                    conjunto_rad.append(0)
+                    conjunto_rad.append(0.0)
                 else:
-                    conjunto_rad.append(float(v_cs/v_cs_3h*v_r_3h))
+                    print('Resultado: ' + str(v_cs/v_cs_3h*v_r_3h))
+                    conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
             fila = fila + conjunto_rad
         df_interpolado.loc[i] = fila
+        break
     index_day = sr.filter_daylight_hours(index)
     index_night = [i for i in index if i not in index_day]
+    print('Cogiendo índices de noche')
     df_interpolado.loc[index_night] = 0
     fecha = '2015123100'
+    print('Guardando matriz')
     guardar_matriz(df_interpolado, fecha, sufijo=".det_interpolado")
     return df_interpolado
 
@@ -167,13 +174,18 @@ Para el cálculo no se tienen en cuenta las horas de noche. Procedimiento:
 Se devuelve un diccionario con los dos maes.
 '''
 def MAE(df_interpolado, df_original):
+    index = df_original.index
+    latlon = dm.select_pen_grid()
     hours_day = sr.filter_daylight_hours(index)
     hours_night = [i for i in index if i not in hours_day]
     df_interpolado = df_interpolado.drop(hours_night)
     df_original = df_original.drop(hours_night)
+    pen_cols = dm.query_cols(latlons=latlon,tags=['FDIR','SSR','SSRC','CDIR','SSRD'])
+    not_pen_cols = [i for i in df_original.columns if i not in pen_cols]
+    df_original = df_original.drop(not_pen_cols,1)
 
     resta_absoluta = np.abs(df_original - df_interpolado)
-    mae_columnas = resta_absoluta.sum/len(df_original)
+    mae_columnas = resta_absoluta.sum()/len(df_original)
     mae_global = mae_columnas.mean()
 
     return {'mae_columnas':mae_columnas, 'mae_global':mae_global}

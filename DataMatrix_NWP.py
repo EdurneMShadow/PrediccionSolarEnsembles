@@ -71,7 +71,7 @@ def to_hourly(df):
 
 
 def select_pen_grid():
-    cols = pd.read_csv("/scratch/gaa/alecat/dev/cols_ext.txt", sep=';').columns
+    cols = pd.read_csv("/gaa/home/alecat/dev/cols_ext.txt", sep=';').columns
     land_grid = []
     for col in cols:
         m = re.search('([-]*\d+[.]\d*), ([-]*\d+[.]\d*)', col)
@@ -91,8 +91,8 @@ def create_dataframe(year,
     """Creates a dataframe out of a DataMatrix containing 1 year of hourly
 aggregated data (source files are 15 minute)."""
     dfs = []
-    # pathin = '/scratch/gaa/alecat/data/eumetsat/processed/myp/15min/'
-    # pathout = '/scratch/gaa/alecat/data/eumetsat/processed/'
+    # pathin = '/gaa/home/alecat/data/eumetsat/processed/myp/15min/'
+    # pathout = '/gaa/home/alecat/data/eumetsat/processed/'
     for t in range(365):
         m = DataMatrix(
             datetime(year + 1, 1, 1) - timedelta(days=t),
@@ -113,8 +113,8 @@ aggregated data (source files are 15 minute)."""
 def select_grid(df, latlons):
     """Extract a set of grid points out of a dataframe (DataMatix format) using
 latlons."""
-    pathin = '/scratch/gaa/alecat/data/eumetsat/processed/myp/15min/'
-    pathout = '/scratch/gaa/alecat/data/eumetsat/processed/'
+    pathin = '/gaa/home/alecat/data/eumetsat/processed/myp/15min/'
+    pathout = '/gaa/home/alecat/data/eumetsat/processed/'
     m = DataMatrix(
         datetime.strptime(str(df.index.max()), "%Y%m%d%H"),
         pathin,

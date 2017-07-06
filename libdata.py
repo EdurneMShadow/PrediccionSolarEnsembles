@@ -203,8 +203,8 @@ def load_prods_preds(path, models):
 
 
 def load_CS(df, shft=1):
-    cs_file = '/scratch/gaa/alecat/data/clear_sky/cs_15min.npy'
-    cs_columns_file = '/scratch/gaa/alecat/data/clear_sky/cs_15min_cols.npy'
+    cs_file = '/gaa/home/alecat/data/clear_sky/cs_15min.npy'
+    cs_columns_file = '/gaa/home/alecat/data/clear_sky/cs_15min_cols.npy'
     data = np.load(cs_file)
     columns = np.load(cs_columns_file)
     index = data[:, 0].astype(int)
