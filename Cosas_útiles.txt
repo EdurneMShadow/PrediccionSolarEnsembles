@@ -1,2 +1,0 @@
-Clases en python:
-Los atributos son aquellos que están definidos como shelf.nombre dentro del método init. (No hay una lista como en C++)

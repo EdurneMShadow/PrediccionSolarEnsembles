@@ -111,18 +111,18 @@ def CS_a_acumulado():
 
     #Poner horas de noche a cero
     index_day = sr.filter_daylight_hours(index)
+    index_night = [i for i in index if i not in index_day]
     cs_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     cs_3h.to_csv('cs_3h_acc.csv')
 
 def interpolacion(cs, cs_3h, r_3h):
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) #índice horario
-
     latlon = dm.select_pen_grid() #latitudes y longitudes de la península
     tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'] #variables de radiación
     columnas = dm.query_cols(latlons = latlon, tags=tags)
-    df_interpolado = pd.DataFrame(index = index, columns = columnas)
-    print('df creado!')
+    filas = []
+    
     var = 0
     for i in index:
         print('i: ' + str(i))
@@ -131,6 +131,7 @@ def interpolacion(cs, cs_3h, r_3h):
             print('latlon = ' + str(j))
             columna_cs = '(' + str(j[1]) + ', ' + str(j[0]) + ') CS H'
             v_cs = cs[columna_cs].loc[i] #selecciona la fila
+                       
             terminacion = str(i)[8:]
             if int(terminacion) > var:
                 if var == 21:
@@ -143,27 +144,34 @@ def interpolacion(cs, cs_3h, r_3h):
                 var_string = str(var)
             indice = int(str(i)[:8] + var_string)
             v_cs_3h = cs_3h[columna_cs].loc[indice]
+            
             conjunto_rad = []
-            cabecera_columna = '(' + str(j[0]) + ', ' + str(j[1]) + ') '
+            cabecera_columna = '(' + str(j[1]) + ', ' + str(j[0]) + ') '
+                        
             for k in tags:
                 columna_rad = cabecera_columna + k
+                
+                print('columna rad: ' + str(columna_rad))
+                
                 v_r_3h = r_3h[columna_rad].loc[indice]
+                
                 print(str(v_cs) + '/ ' + str(v_cs_3h) + '/ ' + str(v_r_3h))
-                if v_cs_3h == 0.0: #NOTE Evita la división por cero.
+                
+                if v_cs_3h == 0.0:
                     conjunto_rad.append(0.0)
                 else:
                     print('Resultado: ' + str(v_cs/v_cs_3h*v_r_3h))
                     conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
             fila = fila + conjunto_rad
-        df_interpolado.loc[i] = fila
+        filas.append(fila)
         break
     index_day = sr.filter_daylight_hours(index)
     index_night = [i for i in index if i not in index_day]
     print('Cogiendo índices de noche')
+    df_interpolado = pd.DataFrame(filas, index = index, columns = columnas)
     df_interpolado.loc[index_night] = 0
     fecha = '2015123100'
-    print('Guardando matriz')
-    guardar_matriz(df_interpolado, fecha, sufijo=".det_interpolado")
+    guardar_matriz(df_interpolado, fecha, sufijo=".det_interpolado")    
     return df_interpolado
 
 '''Este método calcula tanto el MAE de cada columna como el MAE global dados dos conjuntos a comparar.
