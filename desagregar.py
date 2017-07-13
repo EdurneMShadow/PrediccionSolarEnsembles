@@ -164,7 +164,6 @@ def interpolacion(cs, cs_3h, r_3h):
                     conjunto_rad.append(v_cs/v_cs_3h*v_r_3h)
             fila = fila + conjunto_rad
         filas.append(fila)
-        break
     index_day = sr.filter_daylight_hours(index)
     index_night = [i for i in index if i not in index_day]
     print('Cogiendo índices de noche')
@@ -186,14 +185,28 @@ def MAE(df_interpolado, df_original):
     latlon = dm.select_pen_grid()
     hours_day = sr.filter_daylight_hours(index)
     hours_night = [i for i in index if i not in hours_day]
+    
     df_interpolado = df_interpolado.drop(hours_night)
     df_original = df_original.drop(hours_night)
+    
     pen_cols = dm.query_cols(latlons=latlon,tags=['FDIR','SSR','SSRC','CDIR','SSRD'])
     not_pen_cols = [i for i in df_original.columns if i not in pen_cols]
     df_original = df_original.drop(not_pen_cols,1)
+    columnas = df_original.columns
+    
+    resta_absoluta = []
+    for i in df_original.index:
+        fila = []
+        for j in columnas:
+            fila.append(np.abs(df_original[j].loc[i] - df_interpolado[j].loc[i]))
+        resta_absoluta.append(fila)
+    
+    mae_columnas = []
+    for i in range (len(columnas)):
+        suma_columna = 0
+        for j in range (len(resta_absoluta)):
+            suma_columna += resta_absoluta[j][i]
+        mae_columnas.append(suma_columna/len(resta_absoluta))
+    mae_global = np.mean(mae_columnas)
 
-    resta_absoluta = np.abs(df_original - df_interpolado)
-    mae_columnas = resta_absoluta.sum()/len(df_original)
-    mae_global = mae_columnas.mean()
-
-    return {'mae_columnas':mae_columnas, 'mae_global':mae_global}
+    return mae_columnas, mae_globals

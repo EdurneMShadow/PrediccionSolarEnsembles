@@ -31,10 +31,24 @@ cs3.columns = ['(-0.125, 38.625) CS H']
 '''Carga de las radiaciones'''
 fdir = pd.read_csv('./Prueba_interpolacion/fdir.csv', index_col=0)
 cdir = pd.read_csv('./Prueba_interpolacion/cdir.csv', index_col=0)
+ssr = pd.read_csv('./Prueba_interpolacion/ssr.csv', index_col=0)
 ssrc = pd.read_csv('./Prueba_interpolacion/ssrc.csv', index_col=0)
 ssrd = pd.read_csv('./Prueba_interpolacion/ssrd.csv', index_col=0)
-ssr = pd.read_csv('./Prueba_interpolacion/ssr.csv', index_col=0)
 
+m_fdir = pd.DataFrame(fdir.mean()[0], index=index1, columns=fdir.columns)
+m_fdir.to_csv('m_fdir.csv')
+
+m_cdir = pd.DataFrame(cdir.mean()[0], index=index1, columns=cdir.columns)
+m_cdir.to_csv('m_cdir.csv')
+
+m_ssr = pd.DataFrame(ssr.mean()[0], index=index1, columns=ssr.columns)
+m_ssr.to_csv('m_ssr.csv')
+
+m_ssrc = pd.DataFrame(ssrc.mean()[0], index=index1, columns=ssrc.columns)
+m_ssrc.to_csv('m_ssrc.csv')
+
+m_ssrd = pd.DataFrame(ssrd.mean()[0], index=index1, columns=ssrd.columns)
+m_ssrd.to_csv('m_ssrd.csv')
 
 def interpolacion(cs, cs_3h, r_3h):
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
@@ -66,14 +80,18 @@ def interpolacion(cs, cs_3h, r_3h):
             col.append(cs1/cs3*r)
     df_interpolado = pd.DataFrame(col, index = index, columns = ['(-0.125, 38.625) FDIR'])
     return df_interpolado
+  
+'''MAE'''      
+dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
+index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+
+fdir_interpolado = pd.read_csv('./Prueba_interpolacion/fdir_interpolado.csv', index_col=0)
+var = matrix_original['(-0.125, 38.625) FDIR']
+original = pd.DataFrame(var.values,index=index, columns=[var.name])
+lib.MAE(fdir_interpolado, original)
         
-        
-        
-        
-        
-        
-        
-        
+m_fdir = pd.read_csv('./Prueba_interpolacion/m_fdir.csv', index_col=0)       
+lib.MAE(m_fdir, original)        
         
         
         
