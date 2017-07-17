@@ -116,6 +116,31 @@ def CS_a_acumulado():
     cs_3h.to_csv('cs_3h_acc.csv')
 
 def interpolacion(cs, cs_3h, r_3h):
+    
+    cs_3h = pd.concat([cs_3h, cs_3h, cs_3h])
+    cs_3h = cs_3h.sort_index()
+    cs_3h = pd.concat([cs_3h[2:], cs_3h[:2]]) #pone las dos primeras filas al final
+        
+    dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
+    index1 = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+    cs_3h.index = index1
+    
+    cs = cs[17520:]
+    
+    division = cs/cs_3h
+    division_extendida = pd.concat([division,division,division,division,division], axis=1)
+    division_extendida.columns = r_3h.columns
+    
+    r_3h = pd.concat([r_3h, r_3h, r_3h])
+    r_3h = r_3h.sort_index()
+    r_3h = pd.concat([r_3h[2:], r_3h[:2]]) #pone las dos primeras filas al final
+        
+    r_3h.index = index1
+    
+    interpolado = division*r_3h
+    
+    
+    '''
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) #índice horario
     latlon = dm.select_pen_grid() #latitudes y longitudes de la península
@@ -169,9 +194,10 @@ def interpolacion(cs, cs_3h, r_3h):
     print('Cogiendo índices de noche')
     df_interpolado = pd.DataFrame(filas, index = index, columns = columnas)
     df_interpolado.loc[index_night] = 0
+    '''
     fecha = '2015123100'
-    guardar_matriz(df_interpolado, fecha, sufijo=".det_interpolado")    
-    return df_interpolado
+    guardar_matriz(interpolado, fecha, sufijo=".det_interpolado_3.0")    
+    return interpolado
 
 '''Este método calcula tanto el MAE de cada columna como el MAE global dados dos conjuntos a comparar.
 Para el cálculo no se tienen en cuenta las horas de noche. Procedimiento:
@@ -194,19 +220,8 @@ def MAE(df_interpolado, df_original):
     df_original = df_original.drop(not_pen_cols,1)
     columnas = df_original.columns
     
-    resta_absoluta = []
-    for i in df_original.index:
-        fila = []
-        for j in columnas:
-            fila.append(np.abs(df_original[j].loc[i] - df_interpolado[j].loc[i]))
-        resta_absoluta.append(fila)
-    
-    mae_columnas = []
-    for i in range (len(columnas)):
-        suma_columna = 0
-        for j in range (len(resta_absoluta)):
-            suma_columna += resta_absoluta[j][i]
-        mae_columnas.append(suma_columna/len(resta_absoluta))
-    mae_global = np.mean(mae_columnas)
+    resta_absoluta = np.abs(df_original - df_interpolado)
+    mae_columnas = resta_absoluta.sum()/len(df_original)
+    mae_global = mae_columnas.mean()
 
-    return mae_columnas, mae_globals
+    return mae_columnas, mae_global

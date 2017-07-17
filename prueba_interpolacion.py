@@ -28,13 +28,14 @@ cs3 = pd.read_csv('./Prueba_interpolacion/columna_cs3.csv', header=None, index_c
 cs3.index = index3
 cs3.columns = ['(-0.125, 38.625) CS H']
 
-'''Carga de las radiaciones'''
+'''Carga de las radiaciones trihorarias'''
 fdir = pd.read_csv('./Prueba_interpolacion/fdir.csv', index_col=0)
 cdir = pd.read_csv('./Prueba_interpolacion/cdir.csv', index_col=0)
 ssr = pd.read_csv('./Prueba_interpolacion/ssr.csv', index_col=0)
 ssrc = pd.read_csv('./Prueba_interpolacion/ssrc.csv', index_col=0)
 ssrd = pd.read_csv('./Prueba_interpolacion/ssrd.csv', index_col=0)
 
+'''Medias de las radiaciones trihorarias'''
 m_fdir = pd.DataFrame(fdir.mean()[0], index=index1, columns=fdir.columns)
 m_fdir.to_csv('m_fdir.csv')
 
