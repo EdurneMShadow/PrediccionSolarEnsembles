@@ -117,6 +117,12 @@ def CS_a_acumulado():
 
 def interpolacion(cs, cs_3h, r_3h):
     
+    latlon = dm.select_pen_grid()
+    pen_cols = dm.query_cols(latlons=latlon,tags=['CS H'])
+    not_pen_cols = [i for i in cs.columns if i not in pen_cols]
+    cs_3h = cs_3h.drop(not_pen_cols,1)
+    cs = cs.drop(not_pen_cols,1)
+    
     cs_3h = pd.concat([cs_3h, cs_3h, cs_3h])
     cs_3h = cs_3h.sort_index()
     cs_3h = pd.concat([cs_3h[2:], cs_3h[:2]]) #pone las dos primeras filas al final
@@ -128,6 +134,8 @@ def interpolacion(cs, cs_3h, r_3h):
     cs = cs[17520:]
     
     division = cs/cs_3h
+    #poner noche a cero
+    #arreglar infinitos
     division_extendida = pd.concat([division,division,division,division,division], axis=1)
     division_extendida.columns = r_3h.columns
     
@@ -137,7 +145,7 @@ def interpolacion(cs, cs_3h, r_3h):
         
     r_3h.index = index1
     
-    interpolado = division*r_3h
+    interpolado = division_extendida*r_3h
     
     
     '''
