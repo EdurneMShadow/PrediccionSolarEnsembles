@@ -134,8 +134,22 @@ def interpolacion(cs, cs_3h, r_3h):
     cs = cs[17520:]
     
     division = cs/cs_3h
-    #poner noche a cero
+
+    index_day = sr.filter_daylight_hours(index1)
+    index_night = [i for i in index1 if i not in index_day]
+    division.loc[index_night] = 0
+    
     #arreglar infinitos
+    
+    for i in index1:
+        terminacion = str(i)[8:]
+        if terminacion == '16':
+            division.loc[i] = 0
+        if terminacion == '17':
+            division.loc[i] = 0
+        
+    
+    
     division_extendida = pd.concat([division,division,division,division,division], axis=1)
     division_extendida.columns = r_3h.columns
     

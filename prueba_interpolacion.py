@@ -52,7 +52,34 @@ m_ssrd = pd.DataFrame(ssrd.mean()[0], index=index1, columns=ssrd.columns)
 m_ssrd.to_csv('m_ssrd.csv')
 
 def interpolacion(cs, cs_3h, r_3h):
+    #Preparación de dataframes para que tengan las mismas dimensiones
+    #a = pd.concat([fdir,fdir,fdir])
+    #a.sort_index()
+    cs_3h = pd.concat([cs_3h, cs_3h, cs_3h])
+    cs_3h = cs_3h.sort_index()
+    cs_3h = pd.concat([cs_3h[2:], cs_3h[:2]]) #pone las dos primeras filas al final
+        
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
+    index1 = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+    cs_3h.index = index1
+    
+    cs = cs[17520:]
+    
+    division = cs/cs_3h
+    division_extendida = pd.concat([division,division,division,division,division], axis=1)
+    division_extendida.columns = r_3h.columns
+    
+    r_3h = pd.concat([r_3h, r_3h, r_3h])
+    r_3h = r_3h.sort_index()
+    r_3h = pd.concat([r_3h[2:], r_3h[:2]]) #pone las dos primeras filas al final
+        
+    r_3h.index = index1
+    
+    interpolado = division*r_3h
+    
+    
+    
+    '''dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) #índice horario
     col = []
     print('df creado!')
@@ -81,6 +108,7 @@ def interpolacion(cs, cs_3h, r_3h):
             col.append(cs1/cs3*r)
     df_interpolado = pd.DataFrame(col, index = index, columns = ['(-0.125, 38.625) FDIR'])
     return df_interpolado
+    '''
   
 '''MAE'''      
 dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
