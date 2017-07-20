@@ -34,23 +34,26 @@ acumulada. Se ha usado para comprobar que la interpolación mediante clear-sky e
 - Seleccionar los índices trihorarios.
 - Seleccionar las horas de noche y ponerlas a cero.
 Finalmente se devuelve la nueva matriz, además de guardarla en un fichero .npy en edcastil'''
-def determinista_a_trihorario_acc():
-    # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.+
-    tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC']
+def determinista_a_trihorario_acc(radiacion = False):
+    # Estas líneas pasan el modelo determinista horario acumulado a trihorario acumulado.
     matrix=dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/data/solar_ecmwf/','/gaa/home/data/solar_ecmwf/',ifexists=True,model='deterministic',suffix='.det_noacc_vmodule')
     #matrix.dataMatrix #He creado un objeto de la clase DataMatrix, que tiene un atributo dataMatrix.
     #matrix.dataMatrix.columns #Accede a las columnas de la matriz
     m = matrix.dataMatrix
     land_grid = dm.select_pen_grid() #Selecciona solo las longitudes y latitudes de España.
 
-    pen_cols = matrix.query_cols(latlons=land_grid,tags=['FDIR','SSR','SSRC','CDIR','SSRD']) #Estoy seleccionando solo las variables de radiacion (array)
-    rad_var = matrix.dataMatrix[pen_cols] #submatriz solo con las columnas de las variables de radiación.
-
+    if(radiacion is True):
+        pen_cols = matrix.query_cols(latlons=land_grid,tags=['FDIR','SSR','SSRC','CDIR','SSRD']) #Estoy seleccionando solo las variables de radiacion (array)
+        submatrix = matrix.dataMatrix[pen_cols] #submatriz solo con las columnas de las variables de radiación.
+        sufijo = ".det_3h_acc"
+    else:
+        submatrix = m
+        sufijo = ".det_3h_acc_entera"
     #Agregar: sumar una fila con la anterior. En la última fila se tendrá la acumulación de todas las anteriores
     dia = 1
-    for i in range(len(rad_var)-1):
+    for i in range(len(submatrix)-1):
         if dia<24:
-            rad_var.values[i+1] = rad_var.values[i+1] + rad_var.values[i]
+            submatrix.values[i+1] = submatrix.values[i+1] + submatrix.values[i]
             dia+=1
         else:
             dia = 1
@@ -59,8 +62,8 @@ def determinista_a_trihorario_acc():
     dates = pd.date_range('20150101','20160101',freq='3H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])#lista de indices
 
-    rad_var_3h = rad_var.loc[index] #extraer el conjunto trihorario que queremos de la matriz
-    rad_var_3h = rad_var_3h.diff() #diferencia: un elemento menos el anterior (por filas)
+    submatrix_3h = submatrix.loc[index] #extraer el conjunto trihorario que queremos de la matriz
+    submatrix_3h = submatrix_3h.diff() #diferencia: un elemento menos el anterior (por filas)
 
     #Poner las horas de noche a cero.
     index_day = sr.filter_daylight_hours(index)
@@ -72,10 +75,10 @@ def determinista_a_trihorario_acc():
 
     index_night = [i for i in index if i not in index_day]
 
-    rad_var_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
+    submatrix_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     fecha = matrix.date.strftime(matrix.date_format)
-    guardar_matriz(rad_var_3h, fecha, sufijo=".det_3h_acc")
-    return rad_var_3h
+    guardar_matriz(submatrix_3h, fecha, sufijo=sufijo)
+    return submatrix_3h
 
 
 '''Este método pasa el clear-sky horario no acumulado a trihorario acumulado. El procedimiento seguido es el mismo
@@ -218,7 +221,7 @@ def interpolacion(cs, cs_3h, r_3h):
     df_interpolado.loc[index_night] = 0
     '''
     fecha = '2015123100'
-    guardar_matriz(interpolado, fecha, sufijo=".det_interpolado_3.0")    
+    guardar_matriz(interpolado, fecha, sufijo=".det_interpolado_cs")    
     return interpolado
 
 '''Este método calcula tanto el MAE de cada columna como el MAE global dados dos conjuntos a comparar.
@@ -242,8 +245,8 @@ def MAE(df_interpolado, df_original):
     df_original = df_original.drop(not_pen_cols,1)
     columnas = df_original.columns
     
-    resta_absoluta = np.abs(df_original - df_interpolado)
-    mae_columnas = resta_absoluta.sum()/len(df_original)
+    resta_absoluta = np.abs(df_original - df_interpolado)/df_original
+    mae_columnas = resta_absoluta.mean(axis=1)
     mae_global = mae_columnas.mean()
 
     return mae_columnas, mae_global

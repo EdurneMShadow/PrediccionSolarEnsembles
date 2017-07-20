@@ -24,7 +24,7 @@ cs = pd.read_csv('./Prueba_interpolacion/columna_cs1.csv', header=None, index_co
 cs.columns = ['(-0.125, 38.625) CS H']
 
 '''Carga del clear-sky trihorario'''
-cs3 = pd.read_csv('./Prueba_interpolacion/columna_cs3.csv', header=None, index_col=0)
+cs3 = pd.read_csv('./Prueba_interpolacion/columna_cs3.csv',header=None, index_col=0)
 cs3.index = index3
 cs3.columns = ['(-0.125, 38.625) CS H']
 
@@ -122,11 +122,14 @@ lib.MAE(fdir_interpolado, original)
 m_fdir = pd.read_csv('./Prueba_interpolacion/m_fdir.csv', index_col=0)       
 lib.MAE(m_fdir, original)        
         
-        
-        
-        
-        
-        
+'''Interpolación cúbica'''        
+x = list(U10.index)
+y = list(U10['(-0.125, 38.625) U10'])        
+tck = interpolate.splrep(x, y)  
+dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
+index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) 
+x2 = list(index)
+y2 = interpolate.splev(x2, tck)
         
         
         
