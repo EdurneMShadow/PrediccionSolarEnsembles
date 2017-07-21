@@ -132,7 +132,14 @@ x2 = list(index)
 y2 = interpolate.splev(x2, tck)
         
         
-        
+'''MAE diario'''
+r_original = pd.read_csv('./Plots/radiacion_original.csv', index_col=0)
+r_interpolado = pd.read_csv('./Plots/radiacion_interpolada.csv', index_col=0) 
+tags = ['FDIR','CDIR','SSR','SSRC','SSRD']
+mae_dias = {}
+for i in range(5):
+    mae = lib.MAE_diario(r_interpolado[r_interpolado.columns[i]], r_original[r_original.columns[i]])   
+    mae_dias[tags[i]] = mae    
         
         
         

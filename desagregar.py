@@ -13,7 +13,7 @@ import libdata as ut
 
 #matrix_original = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, model='deterministic', suffix='.det_noacc_vmodule')
 #latlon = dm.select_pen_grid()
-#matrix_interpolada = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/edcastil/', '/gaa/home/edcastil/', ifexists = True, model='deterministic', suffix='.det_interpolado', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
+#matrix_interpolada = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/edcastil/', '/gaa/home/edcastil/', ifexists = True, model='deterministic', suffix='.det_interpolado_cs', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
 '''Este método crea dos ficheros .npy, uno con los datos y otro con los nombres de las columnas de la matriz que se
 le haya pasado por parámetro. La fecha y el sufijo se usan para la creación del nombre del fichero según el formato:
 fecha_ultima_hora.mdata.sufijo y fecha_ultima_hora.mdata.sufijo.columns para el fichero de las columnas.'''
@@ -97,14 +97,13 @@ def CS_a_acumulado():
     #     cs_peninsula[col] = cs[col]
 
     #Agregar
-    dia = 0
-    for i in range(len(cs)):
+    dia = 1
+    for i in range(len(cs)-1):
         if dia<24:
-            if i<len(cs)-1:
-                cs.values[i+1]=cs.values[i+1] + cs.values[i]
-                dia+=1
+            cs.values[i+1]=cs.values[i+1] + cs.values[i]
+            dia+=1
         else:
-            dia = 0
+            dia = 1
 
     #Coger de 3 en 3h
     dates= pd.date_range('20150101','20160101',freq='3H')[:-1]
@@ -117,54 +116,55 @@ def CS_a_acumulado():
     index_night = [i for i in index if i not in index_day]
     cs_3h.loc[index_night] = 0 #sobrescribe en la matriz actual
     cs_3h.to_csv('cs_3h_acc.csv')
+    return cs_3h
 
 def interpolacion(cs, cs_3h, r_3h):
-    
+
     latlon = dm.select_pen_grid()
     pen_cols = dm.query_cols(latlons=latlon,tags=['CS H'])
     not_pen_cols = [i for i in cs.columns if i not in pen_cols]
     cs_3h = cs_3h.drop(not_pen_cols,1)
     cs = cs.drop(not_pen_cols,1)
-    
+
     cs_3h = pd.concat([cs_3h, cs_3h, cs_3h])
     cs_3h = cs_3h.sort_index()
     cs_3h = pd.concat([cs_3h[2:], cs_3h[:2]]) #pone las dos primeras filas al final
-        
+
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index1 = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
     cs_3h.index = index1
-    
+
     cs = cs[17520:]
-    
+
     division = cs/cs_3h
 
     index_day = sr.filter_daylight_hours(index1)
     index_night = [i for i in index1 if i not in index_day]
     division.loc[index_night] = 0
-    
+
     #arreglar infinitos
-    
+
     for i in index1:
         terminacion = str(i)[8:]
         if terminacion == '16':
             division.loc[i] = 0
         if terminacion == '17':
             division.loc[i] = 0
-        
-    
-    
+
+
+
     division_extendida = pd.concat([division,division,division,division,division], axis=1)
     division_extendida.columns = r_3h.columns
-    
+
     r_3h = pd.concat([r_3h, r_3h, r_3h])
     r_3h = r_3h.sort_index()
     r_3h = pd.concat([r_3h[2:], r_3h[:2]]) #pone las dos primeras filas al final
-        
+
     r_3h.index = index1
-    
+
     interpolado = division_extendida*r_3h
-    
-    
+
+
     '''
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) #índice horario
@@ -172,7 +172,7 @@ def interpolacion(cs, cs_3h, r_3h):
     tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'] #variables de radiación
     columnas = dm.query_cols(latlons = latlon, tags=tags)
     filas = []
-    
+
     var = 0
     for i in index:
         print('i: ' + str(i))
@@ -181,7 +181,7 @@ def interpolacion(cs, cs_3h, r_3h):
             print('latlon = ' + str(j))
             columna_cs = '(' + str(j[1]) + ', ' + str(j[0]) + ') CS H'
             v_cs = cs[columna_cs].loc[i] #selecciona la fila
-                       
+
             terminacion = str(i)[8:]
             if int(terminacion) > var:
                 if var == 21:
@@ -194,19 +194,19 @@ def interpolacion(cs, cs_3h, r_3h):
                 var_string = str(var)
             indice = int(str(i)[:8] + var_string)
             v_cs_3h = cs_3h[columna_cs].loc[indice]
-            
+
             conjunto_rad = []
             cabecera_columna = '(' + str(j[1]) + ', ' + str(j[0]) + ') '
-                        
+
             for k in tags:
                 columna_rad = cabecera_columna + k
-                
+
                 print('columna rad: ' + str(columna_rad))
-                
+
                 v_r_3h = r_3h[columna_rad].loc[indice]
-                
+
                 print(str(v_cs) + '/ ' + str(v_cs_3h) + '/ ' + str(v_r_3h))
-                
+
                 if v_cs_3h == 0.0:
                     conjunto_rad.append(0.0)
                 else:
@@ -221,32 +221,66 @@ def interpolacion(cs, cs_3h, r_3h):
     df_interpolado.loc[index_night] = 0
     '''
     fecha = '2015123100'
-    guardar_matriz(interpolado, fecha, sufijo=".det_interpolado_cs")    
+    guardar_matriz(interpolado, fecha, sufijo=".det_interpolado_cs")
     return interpolado
 
-'''Este método calcula tanto el MAE de cada columna como el MAE global dados dos conjuntos a comparar.
-Para el cálculo no se tienen en cuenta las horas de noche. Procedimiento:
-- En primer lugar se calcula la resta absoluta entre los dos df, dando un valor para cada posición de la tabla.
-- Después se suman esos valores por columnas y se divide por el n_filas para tener un valor de mae para cada columna.
-- Finalmente se hace la media de todos los maes para tener el mae global.
-Se devuelve un diccionario con los dos maes.
-'''
+
 def MAE(df_interpolado, df_original):
+    '''Este método calcula tanto el MAE de cada columna como el MAE global dados dos conjuntos a comparar.
+    Para el cálculo no se tienen en cuenta las horas de noche. Procedimiento:
+        - En primer lugar se calcula la resta absoluta entre los dos df, dando un valor para cada posición de la tabla.
+        - Después se suman esos valores por columnas y se divide por el n_filas para tener un valor de mae para cada columna.
+        - Finalmente se hace la media de todos los maes para tener el mae global.
+        Se devuelve un diccionario con los dos maes.
+    '''
     index = df_original.index
     latlon = dm.select_pen_grid()
     hours_day = sr.filter_daylight_hours(index)
     hours_night = [i for i in index if i not in hours_day]
-    
+
     df_interpolado = df_interpolado.drop(hours_night)
     df_original = df_original.drop(hours_night)
-    
+
     pen_cols = dm.query_cols(latlons=latlon,tags=['FDIR','SSR','SSRC','CDIR','SSRD'])
     not_pen_cols = [i for i in df_original.columns if i not in pen_cols]
     df_original = df_original.drop(not_pen_cols,1)
     columnas = df_original.columns
-    
-    resta_absoluta = np.abs(df_original - df_interpolado)/df_original
-    mae_columnas = resta_absoluta.mean(axis=1)
+
+    resta_absoluta = np.abs(df_original - df_interpolado)
+    mae_columnas = resta_absoluta.mean()
     mae_global = mae_columnas.mean()
 
     return mae_columnas, mae_global
+
+
+
+def MAE_diario(df_interpolado, df_original):
+    inicio_dia = 0
+    fin_dia = 24
+    mae_dias = {}
+
+    while fin_dia < len(df_original):
+        original = df_original[inicio_dia:fin_dia]
+        interpolado = df_interpolado[inicio_dia:fin_dia]
+
+        hours_day = sr.filter_daylight_hours(original.index)
+        hours_night = [i for i in original.index if i not in hours_day]
+        interpolado = interpolado.drop(hours_night)
+        original = original.drop(hours_night)
+
+        resta_absoluta = np.abs(original-interpolado)
+        mae_dias[original.index[0]] = resta_absoluta.mean()
+        inicio_dia = fin_dia
+        fin_dia += 24
+    return mae_dias
+
+def obtener_dia_completo(fecha):
+    dia = str(fecha)[:8]
+    indice = []
+    for i in range (24):
+        if len(str(i)) < 2 :
+            hora = '0' + str(i)
+        else:
+            hora = str(i)
+        indice.append(int(dia + hora))
+    return indice

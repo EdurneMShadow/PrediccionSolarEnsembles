@@ -7,6 +7,7 @@ Created on Thu Jul 20 12:44:39 2017
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import desagregar as lib
 
 
 r_original = pd.read_csv('./Plots/radiacion_original.csv', index_col=0)
@@ -199,3 +200,83 @@ _ = plt.plot(y1, t5,'#FFA500')
 plt.tight_layout()
 plt.savefig('rad_horariaVStrihoraria.pdf')
 plt.show()
+
+#===================MAE DIARIO=========================
+def plot_mae_diario(r_original, r_interpolado, maximo_error, max_error):
+    indice = lib.obtener_dia_completo(maximo_error)
+    indice2 = lib.obtener_dia_completo(max_error)
+    fdir_original_error = r_original['(-0.125, 38.625) FDIR'].loc[indice]
+    fdir_interpolado_error = r_interpolado['(-0.125, 38.625) FDIR'].loc[indice]
+    
+        
+    cdir_original_error = r_original['(-0.125, 38.625) CDIR'].loc[indice2]
+    cdir_interpolado_error = r_interpolado['(-0.125, 38.625) CDIR'].loc[indice2]
+    
+    ssr_original_error = r_original['(-0.125, 38.625) SSR'].loc[indice2]
+    ssr_interpolado_error = r_interpolado['(-0.125, 38.625) SSR'].loc[indice2]
+    
+    ssrc_original_error = r_original['(-0.125, 38.625) SSRC'].loc[indice2]
+    ssrc_interpolado_error = r_interpolado['(-0.125, 38.625) SSRC'].loc[indice2]
+    
+    ssrd_original_error = r_original['(-0.125, 38.625) SSRD'].loc[indice2]
+    ssrd_interpolado_error = r_interpolado['(-0.125, 38.625) SSRD'].loc[indice2]
+    
+    y = np.arange(0,24,1)
+    x = np.arange(0, 3000001, 500000)
+    
+    plt.figure( figsize = (15, 20) )
+    plt.subplot(5, 2, 1)
+    plt.title('FDIR interpolado vs original')
+    plt.xlabel('Horas')
+    plt.ylabel('Radiación')
+    plt.xticks(y)
+    plt.yticks(x)
+    _ = plt.plot(y,list(fdir_original_error), label = 'original')
+    _ = plt.plot(y, list(fdir_interpolado_error), label = 'interpolado')
+    plt.legend(loc = 'best')
+    
+    plt.subplot(3, 2, 2)
+    plt.title('CDIR interpolado vs original')
+    plt.xlabel('Horas')
+    plt.ylabel('Radiación')
+    plt.xticks(y)
+    plt.yticks(x)
+    _ = plt.plot(y,list(cdir_original_error), label = 'original')
+    _ = plt.plot(y, list(cdir_interpolado_error), label = 'interpolado')
+    plt.legend(loc = 'best')
+    
+    plt.subplot(3, 2, 3)
+    plt.title('SSR interpolado vs original')
+    plt.xlabel('Horas')
+    plt.ylabel('Radiación')
+    plt.xticks(y)
+    plt.yticks(x)
+    _ = plt.plot(y,list(ssr_original_error), label = 'original')
+    _ = plt.plot(y, list(ssr_interpolado_error), label = 'interpolado')
+    plt.legend(loc = 'best')
+    
+    plt.subplot(3, 2, 4)
+    plt.title('SSRC interpolado vs original')
+    plt.xlabel('Horas')
+    plt.ylabel('Radiación')
+    plt.xticks(y)
+    plt.yticks(x)
+    _ = plt.plot(y,list(ssrc_original_error), label = 'original')
+    _ = plt.plot(y, list(ssrc_interpolado_error), label = 'interpolado')
+    plt.legend(loc = 'best')
+    
+    plt.subplot(3, 2, 5)
+    plt.title('SSRD interpolado vs original')
+    plt.xlabel('Horas')
+    plt.ylabel('Radiación')
+    plt.xticks(y)
+    plt.yticks(x)
+    _ = plt.plot(y,list(ssrd_original_error), label = 'original')
+    _ = plt.plot(y, list(ssrd_interpolado_error), label = 'interpolado')
+    plt.legend(loc = 'best')
+    
+    plt.savefig('errorMae.pdf')
+    plt.show()
+
+
+
