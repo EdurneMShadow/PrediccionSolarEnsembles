@@ -9,47 +9,27 @@ import pandas as pd
 import numpy as np
 import DataMatrix_NWP as dm
 
+def main():
+    cs = pd.read_csv('./Prueba_interpolacion/matriz_punto_cs.csv', index_col = 0)
+    cs3 = pd.read_csv('./Prueba_interpolacion/matriz_punto_cs3.csv', index_col = 0)
+    m_original = pd.read_csv('./Prueba_interpolacion/matriz_punto_original.csv', index_col = 0)
+    m_trihoraria = pd.read_csv('./Prueba_interpolacion/matriz_punto_trihoraria.csv', index_col = 0)
 
-dates = pd.date_range('20150101','20160101',freq='3H')[:-1]
-index3 = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
+    m_horaria_interpolada = interpolacion(cs, cs3,m_trihoraria)
+    mae_prueba(m_original, m_horaria_interpolada)
 
-dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
-index1 = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
 
-dates = pd.date_range('20130101','20160101',freq='1H')[:-1]
-indexcs = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
-
-'''Carga del clear-sky horario'''
-cs = pd.read_csv('./Prueba_interpolacion/columna_cs1.csv', header=None, index_col = 0)
-cs.columns = ['(-0.125, 38.625) CS H']
-
-'''Carga del clear-sky trihorario'''
-cs3 = pd.read_csv('./Prueba_interpolacion/columna_cs3.csv',header=None, index_col=0)
-cs3.index = index3
-cs3.columns = ['(-0.125, 38.625) CS H']
-
-'''Carga de las radiaciones trihorarias'''
-fdir = pd.read_csv('./Prueba_interpolacion/fdir.csv', index_col=0)
-cdir = pd.read_csv('./Prueba_interpolacion/cdir.csv', index_col=0)
-ssr = pd.read_csv('./Prueba_interpolacion/ssr.csv', index_col=0)
-ssrc = pd.read_csv('./Prueba_interpolacion/ssrc.csv', index_col=0)
-ssrd = pd.read_csv('./Prueba_interpolacion/ssrd.csv', index_col=0)
+def calcular_medias_radiaciones(matrix, tags):
+    '''PENDIENTE DE REVISAR'''
+    medias = list(matrix.mean())
+    media_radiaciones = {}
+    for i, tag in enumerate(tags):
+        media_radiaciones[tag] = medias[i]
+    return media_radiaciones
 
 '''Medias de las radiaciones trihorarias'''
-m_fdir = pd.DataFrame(fdir.mean()[0], index=index1, columns=fdir.columns)
-m_fdir.to_csv('m_fdir.csv')
-
-m_cdir = pd.DataFrame(cdir.mean()[0], index=index1, columns=cdir.columns)
-m_cdir.to_csv('m_cdir.csv')
-
-m_ssr = pd.DataFrame(ssr.mean()[0], index=index1, columns=ssr.columns)
-m_ssr.to_csv('m_ssr.csv')
-
-m_ssrc = pd.DataFrame(ssrc.mean()[0], index=index1, columns=ssrc.columns)
-m_ssrc.to_csv('m_ssrc.csv')
-
-m_ssrd = pd.DataFrame(ssrd.mean()[0], index=index1, columns=ssrd.columns)
-m_ssrd.to_csv('m_ssrd.csv')
+#m_fdir = pd.DataFrame(m_original.mean()[0], index=index1, columns=fdir.columns)
+#m_fdir.to_csv('m_fdir.csv')
 
 def interpolacion(cs, cs_3h, r_3h):
     #Preparación de dataframes para que tengan las mismas dimensiones
@@ -58,90 +38,68 @@ def interpolacion(cs, cs_3h, r_3h):
     cs_3h = pd.concat([cs_3h, cs_3h, cs_3h])
     cs_3h = cs_3h.sort_index()
     cs_3h = pd.concat([cs_3h[2:], cs_3h[:2]]) #pone las dos primeras filas al final
-        
+
     dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
     index1 = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
     cs_3h.index = index1
-    
+
     cs = cs[17520:]
-    
+
     division = cs/cs_3h
     division_extendida = pd.concat([division,division,division,division,division], axis=1)
     division_extendida.columns = r_3h.columns
-    
+
     r_3h = pd.concat([r_3h, r_3h, r_3h])
     r_3h = r_3h.sort_index()
     r_3h = pd.concat([r_3h[2:], r_3h[:2]]) #pone las dos primeras filas al final
-        
-    r_3h.index = index1
-    
-    interpolado = division*r_3h
-    
-    
-    
-    '''dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
-    index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) #índice horario
-    col = []
-    print('df creado!')
-    var = 0
-    for i in index:
-        cs1 = cs.loc[i][0]
-        
-        terminacion = str(i)[8:]
-        if int(terminacion) > var:
-            if var == 21:
-                var = 0
-            else:
-                var+=3
-        if len(str(var)) < 2:
-            var_string = '0' + str(var)
-        else:
-            var_string = str(var)
-        indice = int(str(i)[:8] + var_string)
-        
-        cs3 = cs_3h.loc[indice][0]
-        r = r_3h.loc[indice][0]
-        if cs3 == 0.0: 
-            col.append(0.0)
-        else:
-            print('Resultado: ' + str(cs1/cs3*r))
-            col.append(cs1/cs3*r)
-    df_interpolado = pd.DataFrame(col, index = index, columns = ['(-0.125, 38.625) FDIR'])
-    return df_interpolado
-    '''
-  
-'''MAE'''      
-dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
-index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates])
 
-fdir_interpolado = pd.read_csv('./Prueba_interpolacion/fdir_interpolado.csv', index_col=0)
-var = matrix_original['(-0.125, 38.625) FDIR']
-original = pd.DataFrame(var.values,index=index, columns=[var.name])
-lib.MAE(fdir_interpolado, original)
-        
-m_fdir = pd.read_csv('./Prueba_interpolacion/m_fdir.csv', index_col=0)       
-lib.MAE(m_fdir, original)        
-        
-'''Interpolación cúbica'''        
-x = list(U10.index)
-y = list(U10['(-0.125, 38.625) U10'])        
-tck = interpolate.splrep(x, y)  
-dates = pd.date_range('20150101','20160101',freq='1H')[:-1]
-index = np.array([int(d.strftime("%Y%m%d%H")) for d in dates]) 
-x2 = list(index)
-y2 = interpolate.splev(x2, tck)
-        
-        
+    r_3h.index = index1
+
+    interpolado = division*r_3h
+    return interpolado
+
+'''MAE'''
+def mae_prueba(original, interpolado):
+    print("MAE: ", abs(original - interpolado).mean())
+    print("RMAE: ", abs(original - interpolado).mean()/original.mean())
+
+
 '''MAE diario'''
+def mae_diario_prueba(original, interpolado):
+#r_original = pd.read_csv('./Plots/radiacion_original.csv', index_col=0)
+#r_interpolado = pd.read_csv('./Plots/radiacion_interpolada.csv', index_col=0)
+#tags = ['FDIR','CDIR','SSR','SSRC','SSRD']
+    mae_dias = {}
+    for i in range(5):
+        mae = lib.MAE_diario(interpolado[interpolado.columns[i]], original[original.columns[i]])
+        mae_dias[tags[i]] = mae
+
+
+'''Obtener datos para el 22 de Marzo
 r_original = pd.read_csv('./Plots/radiacion_original.csv', index_col=0)
-r_interpolado = pd.read_csv('./Plots/radiacion_interpolada.csv', index_col=0) 
-tags = ['FDIR','CDIR','SSR','SSRC','SSRD']
-mae_dias = {}
-for i in range(5):
-    mae = lib.MAE_diario(r_interpolado[r_interpolado.columns[i]], r_original[r_original.columns[i]])   
-    mae_dias[tags[i]] = mae    
-        
-        
-        
-        
-        
+indice  = lib.obtener_dia_completo(2015032200)
+dia = r_original.loc[indice]
+dia.to_csv('22Marzo_radiacion.csv', sep=';')
+
+cs = pd.read_csv('./Plots/cs_horario.csv', index_col=0)
+dia_cs = cs.loc[indice]
+dia_cs.to_csv('22Marzo_cs.csv', sep=';')
+
+
+cs3 = pd.read_csv('./Plots/cs_trihorario.csv', index_col=0)
+index = [2015032200,2015032203,2015032206,2015032209,2015032212,2015032215,2015032218,2015032221]
+dia_cs3 = cs3.loc[index]
+dia_cs3.to_csv('22Marzo_cs3.csv', sep=';')
+
+
+r_interpolado = pd.read_csv('./Plots/radiacion_interpolada.csv', index_col=0)
+dia_interpolado = r_interpolado.loc[indice]
+dia_interpolado.to_csv('22Marzo_interpolado.csv', sep=';')
+
+
+r_trihorario = pd.read_csv('./Plots/radiacion_trihoraria.csv', index_col=0)
+dia_trihorario = r_trihorario.loc[index]
+dia_trihorario.to_csv('22Marzo_trihorario.csv', sep=';')
+'''
+if __name__ == '__main__':
+    main()

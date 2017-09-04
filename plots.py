@@ -279,4 +279,100 @@ def plot_mae_diario(r_original, r_interpolado, maximo_error, max_error):
     plt.show()
 
 
+#===========================INTERPOLACION A MANO==============================
+fdir = [0,0,0,0,0,0,0,444.985162,15937.29782,28106.37257,49371.75912,58847.84324,63784.07441,20279.65543,18718.84973,15715.04536,109712.7838,62398.43392,17584.26585,0,0,0,0,0]
+fdir = np.array(fdir)
+r_original = pd.read_csv('./Plots/radiacion_original.csv', index_col=0)
+indice  = lib.obtener_dia_completo(2015032200)
+fdir_original =  r_original['(-0.125, 38.625) FDIR'].loc[indice]
+
+cdir = [0,0,0,0,0,0,0,181396.7204,650389.9228,1147001.311,1895593.414,2259420.893,2448943.962,3257962.521,3007216.324,2524649.838,5158611.67,2933926.117,826798.8099,0,0,0,0,0]
+cdir = np.array(cdir)
+cdir_original =  r_original['(-0.125, 38.625) CDIR'].loc[indice]
+
+ssr = [0,0,0,0,0,0,0,32552.9214,116717.0608,205837.4784,400262.9481,477086.7322,517105.3678,572512.1589,528449.2682,443649.2807,1088024.837,618807.0668,174387.6711,0,0,0,0,0]
+ssr = np.array(ssr)
+ssr_original =  r_original['(-0.125, 38.625) SSR'].loc[indice]
+
+ssrc = [0,0,0,0,0,0,0,193230.505,692819.4343,1221828.278,1800320.146,2145861.513,2325859.078,3174213.557,2929913.025,2459751.36,5050573.102,2872480.682,809482.8798,0,0,0,0,0]
+ssrc = np.array(ssrc)
+ssrc_original =  r_original['(-0.125, 38.625) SSRC'].loc[indice]
+
+ssrd = [0,0,0,0,0,0,0,40942.43031,146797.2741,258885.7236,496250.1958,591497.1281,641112.6518,718270.6751,662989.6094,556600.0012,1355057.969,770680.4281,217182.5266,0,0,0,0,0]
+ssrd = np.array(ssr)
+ssrd_original =  r_original['(-0.125, 38.625) SSRD'].loc[indice]
+
+y = np.arange(0,24,1)
+
+plt.figure( figsize = (15, 20) )
+plt.subplot(5, 2, 1)
+plt.title('FDIR interpolado vs original')
+plt.xlabel('Horas')
+plt.ylabel('Radiación')
+plt.xticks(y)
+_ = plt.plot(y,fdir_original, label = 'original')
+_ = plt.plot(y, fdir, label = 'interpolado')
+plt.legend(loc = 'best')
+
+plt.subplot(3, 2, 2)
+plt.title('CDIR interpolado vs original')
+plt.xlabel('Horas')
+plt.ylabel('Radiación')
+plt.xticks(y)
+_ = plt.plot(y,cdir_original, label = 'original')
+_ = plt.plot(y, cdir, label = 'interpolado')
+plt.legend(loc = 'best')
+
+plt.subplot(3, 2, 3)
+plt.title('SSR interpolado vs original')
+plt.xlabel('Horas')
+plt.ylabel('Radiación')
+plt.xticks(y)
+_ = plt.plot(y,ssr_original, label = 'original')
+_ = plt.plot(y, ssr, label = 'interpolado')
+plt.legend(loc = 'best')
+
+plt.subplot(3, 2, 4)
+plt.title('SSRC interpolado vs original')
+plt.xlabel('Horas')
+plt.ylabel('Radiación')
+plt.xticks(y)
+_ = plt.plot(y,ssrc_original, label = 'original')
+_ = plt.plot(y, ssrc, label = 'interpolado')
+plt.legend(loc = 'best')
+
+plt.subplot(3, 2, 5)
+plt.title('SSRD interpolado vs original')
+plt.xlabel('Horas')
+plt.ylabel('Radiación')
+plt.xticks(y)
+_ = plt.plot(y,ssrd_original, label = 'original')
+_ = plt.plot(y, ssrd, label = 'interpolado')
+plt.legend(loc = 'best')
+
+plt.savefig('InterpolacionAMano.pdf')
+plt.show()
+#============================================================================
+cs = pd.read_csv('./Plots/cs_horario.csv', index_col=0)
+dia_cs = cs.loc[indice]
+dia_cs = list(dia_cs['(-0.125, 38.625) CS H'])
+plt.title('CS vs original')
+plt.xlabel('Horas')
+plt.ylabel('Radiación')
+plt.xticks(y)
+_ = plt.plot(y,fdir_original, label = 'original')
+_ = plt.plot(y, dia_cs, label = 'clear-sky')
+plt.legend(loc = 'best')
+
+
+
+
+
+
+
+
+
+
+
+
 
