@@ -148,23 +148,16 @@ def check(var_original, var_interpolada, nombre_variable_radiacion):
     print("MAE: ", abs(var_original - var_interpolada).mean())
     print("RMAE: ", abs(var_original - var_interpolada).mean()/var_original.mean())
     
-    plt.title("real (r) vs interp (b) values")
-    plt.plot(var_original, 'r', var_interpolada, 'b')
+    y = np.arange(0,24,1)
+    plt.figure()
+    plt.title(nombre_variable_radiacion)
+    plt.xlabel('Horas')
+    plt.ylabel('Radiación')
+    _ = plt.plot(y,var_original, label = 'original')
+    _ = plt.plot(y, var_interpolada, label = 'interpolado')
+    plt.legend(loc = 'best')
     nombre = 'Imagenes/'+ nombre_variable_radiacion + '_interpolado.pdf'
     plt.savefig(nombre)
-    plt.show()
-    
-
-    
-#################################################### cubic splines
-#definir interpolador para las 3-horas de 0 a 21
-#hours_3h = [0, 3, 6, 9, 12, 15, 18, 21]
-#horas de 0 a 21
-#hours = [i for i in range(22)]
-    
-def cubic_spline_interpol(hours, hours_3h, var):
-    cubic_interp = CubicSpline(hours_3h, var[hours_3h])
-    return cubic_interp(hours) 
 
     
 #################################################### main
