@@ -12,15 +12,14 @@ Created on Wed Sep  6 11:07:02 2017
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import os, sys
 import time
-import bisect
+import pickle
 
 import seaborn as sns
 
 from sklearn.preprocessing import StandardScaler
-from sklearn import svm
-from sklearn.model_selection import KFold, GridSearchCV, cross_val_score
+from sklearn.svm import SVR
+from sklearn.model_selection import KFold, GridSearchCV, cross_val_score, ShuffleSplit
 from sklearn.metrics import mean_squared_error, mean_absolute_error, make_scorer
 
 
@@ -30,40 +29,60 @@ df = pd.read_csv('w_e.csv', sep=',')
 print("nFilas: %d\tnColumnas: %d\n" % (df.shape[0], df.shape[1]) )
 print("Columnas:\n", np.array(df.columns))
 
-l_features = list( df.columns[2 : ] )
+l_features = list(df.columns[2:])
 target = df.columns[1]
 
+n_dimensiones = len(l_features)
+x = df[l_features].values
+y = df[target].values
+
+
 #Conjunto de entrenamiento y test
-train = df.ix[0:3945]
-test = df.ix[3946:]
+conjuntos = ShuffleSplit(test_size = 0.25)
 
+#Escalado de datos
+scaler = StandardScaler()
+x_escalado = scaler.fit_transform(x)
+
+'''Modelo SVR predefinido'''
 #Modelo SVR
-X_train = train[l_features]
-y_train = train[target]
-X_test = test[l_features]
-y_test = test[target]
+svr = SVR(C=1., gamma = 1/n_dimensiones, epsilon = y.std()/10., kernel = 'rbf', shrinking = False, tol = 1.e-6)
+t_0 = time.time()
+svr.fit(x_escalado, y)
+print('Tiempo de train: ', time.time()-t_0)
+print('Número de vectores de soporte: ', svr.support_.shape[0])
 
-clf = svm.SVR()
-clf.fit(X_train, y_train)
-y_predict = clf.predict(X_test)
+#MAE
+scores_mae = - cross_val_score(svr, x_escalado, y, cv=conjuntos, scoring = 'neg_mean_absolute_error', n_jobs=8)
+print('cv mae mean: ', scores_mae.mean())
 
-print("MAE: ", abs(y_test - y_predict).mean())
-#plt.scatter(X_test['U10'],y_test, label='data')
-#plt.plot(X_test['U10'], y_predict, 'darkorange')
+'''SVR parametrizado'''
+lista_C = [10.**k for k in range (0,5)]
+lista_gamma = list(np.array([2.**k for k in range(-2, 4)])/n_dimensiones)
+lista_epsilon = list(y.std() * np.array([2.**k for k in range(-6, -2)]))
 
-#Modelo SVR con kernel
-svr_rbf = svm.SVR(kernel='rbf', C=1e3, gamma=0.1)
-svr_lin = svm.SVR(kernel='linear', C=1e3)
-svr_poly = svm.SVR(kernel='poly', C=1e3, degree=2)
+parametros = {'C': lista_C, 'gamma': lista_gamma, 'epsilon': lista_epsilon}
+print('Número de parámetros: ', len(lista_C)*len(lista_gamma)*len(lista_epsilon))
 
-y_rbf = svr_rbf.fit(X_train, y_train).predict(X_test)
-print("MAE: ", abs(y_test - y_rbf).mean())
+svr_parametrizado = SVR(kernel = 'rbf', shrinking=True, tol=1.e-3)
 
-y_lin = svr_lin.fit(X_train, y_train).predict(X_test)
-print("MAE: ", abs(y_test - y_lin).mean())
+conjuntos = ShuffleSplit(n_splits=5, test_size = 0.25)
+buscador = (GridSearchCV(svr_parametrizado, param_grid=parametros, cv = conjuntos, 
+                         scoring='neg_mean_absolute_error', n_jobs=8, verbose=5))
 
-y_poly = svr_poly.fit(X_train, y_train).predict(X_test)
-print("MAE: ", abs(y_test - y_poly).mean())
+t_0 = time.time()
+buscador.fit(x_escalado,y)
+print('Tiempo de búsqueda: ', time.time() - t_0)
+
+with open('svr_parametrizado.txt' , 'wb') as handle:
+    pickle.dump(buscador, handle, protocol= pickle.HIGHEST_PROTOCOL)
+    
+#Mejores parámetros
+best_C = buscador.best_params_['C']
+best_gamma = buscador.best_params_['gamma']
+best_epsilon = buscador.best_params_['epsilon']
+print('Mejor C: ', best_C, ' Mejor gamma: ', best_gamma, ' Mejor epsilon: ', best_epsilon)
+
 
 
 
