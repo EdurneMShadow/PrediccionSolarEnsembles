@@ -78,11 +78,21 @@ with open('svr_parametrizado.txt' , 'wb') as handle:
     pickle.dump(buscador, handle, protocol= pickle.HIGHEST_PROTOCOL)
     
 #Mejores parámetros
+with open('svr_parametrizado.txt', 'rb') as handle :
+    buscador = pickle.load(handle)
 best_C = buscador.best_params_['C']
 best_gamma = buscador.best_params_['gamma']
 best_epsilon = buscador.best_params_['epsilon']
 print('Mejor C: ', best_C, ' Mejor gamma: ', best_gamma, ' Mejor epsilon: ', best_epsilon)
 
+#Modelo con los mejores parámetros
+svr_best = SVR(C=best_C, gamma=best_gamma, epsilon=best_epsilon, kernel='rbf', shrinking=True, tol=1.e-3)
+
+#Evaluacion con kfold cross-validation + mae
+kf = KFold(10, shuffle=True, random_state=0)
+scores_mae_parametrizado = (- cross_val_score(svr_best, x_escalado,y, cv=kf, 
+                                              scoring='neg_mean_absolute_error', n_jobs=8, verbose=5))
+print('Media Scores MAE SVR parametrizado: ', scores_mae_parametrizado.mean())
 
 
 
