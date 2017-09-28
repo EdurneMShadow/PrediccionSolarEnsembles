@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep  6 11:07:02 2017
+Created on Thu Sep 14 12:09:06 2017
 
 @author: Edurne
 """
@@ -14,8 +14,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import time
 import pickle
-
-import seaborn as sns
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
@@ -93,20 +91,3 @@ kf = KFold(10, shuffle=True, random_state=0)
 scores_mae_parametrizado = (- cross_val_score(svr_best, x_escalado,y, cv=kf, 
                                               scoring='neg_mean_absolute_error', n_jobs=8, verbose=5))
 print('Media Scores MAE SVR parametrizado: ', scores_mae_parametrizado.mean())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

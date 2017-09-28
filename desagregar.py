@@ -244,3 +244,20 @@ def obtener_dia_completo(fecha):
             hora = str(i)
         indice.append(int(dia + hora))
     return indice
+
+def crear_indice_anio(inicio, fin):
+    '''Dados dos datetime, devuelve el índice con todas las horas entre ellos'''
+    index = []
+    delta = fin - inicio
+    for i in range (0,int(delta.total_seconds()), 3600):
+        index.append(int((inicio + timedelta(hours = i/3600)).strftime("%Y%m%d%H")))
+    return index
+
+#prodsTotal = pd.read_csv('/gaa/home/alecat/data/prodsTotal.csv', index_col=0)
+#index_train = crear_indice_anio(datetime.datetime(2013,1,1), datetime.datetime(2014,1,1))
+#index_val = crear_indice_anio(datetime.datetime(2014,1,1), datetime.datetime(2015,1,1))
+#index_test = crear_indice_anio(datetime.datetime(2015,1,1), datetime.datetime(2016,1,1))
+#
+#prod_train = prodsTotal.loc[index_train]
+#prod_val = prodsTotal.loc[index_val]
+#prod_test = prodsTotal.loc[index_test]
