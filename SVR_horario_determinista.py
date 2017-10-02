@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import DataMatrix_NWP as dm
 import datetime
+import pickle
 from datetime import timedelta
 
 from sklearn.preprocessing import StandardScaler
@@ -19,6 +20,9 @@ import DataMatrix_NWP as dm
 
         
 #Carga de datos + conjuntos entrenamiento, validación y test
+assert (len(sys.argv) >= 2), 'Debe haber un argumento'
+assert (len(sys.argv[1]) == 3), 'El modelo necesita tres parámetros'
+
 matrix_train = (dm.DataMatrix(datetime.datetime(2013,12,31), 
 '/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
 model='deterministic', suffix='.det_noacc_vmodule'))
@@ -37,8 +41,8 @@ prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015.csv', index_col=0)
 
 variables = list(matrix_train.dataMatrix.columns)
 target = prod_train.columns[0]
-print('Variables: ' + variables)
-print('Target: ' + target)
+#print('Variables: ' + str(variables))
+#print('Target: ' + str(target))
 
 n_dimensiones = len(variables)
 x_train = matrix_train.dataMatrix.values
@@ -55,42 +59,22 @@ x_val_escalado = scaler.fit_transform(x_val)
 x_test_escalado = scaler.fit_transform(x_test)
 
 '''SVR parametrizado'''
-lista_C = [10.**k for k in range (0,5)]
-lista_gamma = list(np.array([2.**k for k in range(-2, 4)])/n_dimensiones)
-lista_epsilon = list(y_train.std() * np.array([2.**k for k in range(-6, -2)]))
+parametros = sys.argv[1]
+i = parametros[0]
+j = parametros[1]
+k = parametros[2]
 
-parametros = {'C': lista_C, 'gamma': lista_gamma, 'epsilon': lista_epsilon}
-print('Número de parámetros: ', len(lista_C)*len(lista_gamma)*len(lista_epsilon))
-
-errores = {}
-
-for i in lista_C:
-    for j in lista_epsilon:
-        for k in lista_gamma:
-            parametros = (i,j,k)
-            svr = SVR(C=i, gamma=k, epsilon=j, kernel='rbf', shrinking = True, tol = 1.e-6)
-            svr.fit(x_train_escalado,y_train)
-            y_pred = svr.predict(x_val_escalado)
-            mae = mean_absolute_error(y_val, y_pred)
-            errores[parametros] = mae
-
-print('C, epsilon, gamma : MAE')
-for i in errores.keys():
-    print(i,' : ',errores[i])
-
-minimo_mae = 100
-for i in errores.keys():
-    if errores[i] < minimo_mae:
-        minimo_mae = errores[i]
-        clave = i
-print('Parámetros con menor MAE: ' + str(clave) + ' MAE: ' + minimo_mae)
-
-svr = SVR(C=clave[0], gamma=clave[2], epsilon=clave[1], kernel='rbf', shrinking = True, tol = 1.e-6)
+svr = SVR(C=i, gamma=k, epsilon=j, kernel='rbf', shrinking = True, tol = 1.e-6)
 svr.fit(x_train_escalado,y_train)
-y_pred = svr.predict(x_test_escalado)
-mae = mean_absolute_error(y_test, y_pred)
+y_pred = svr.predict(x_val_escalado)
+mae = mean_absolute_error(y_val, y_pred)
 
-print('Error de test: ' + str(mae))
+lista_resultados = [parametros, mae]
+f = open('resultados_svr.txt', 'w')
+f.write(lista_resultados)
+f.close()
+
+
 
 
 
