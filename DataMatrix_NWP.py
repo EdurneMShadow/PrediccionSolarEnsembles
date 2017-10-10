@@ -5,6 +5,7 @@ import numpy as np
 from datetime import timedelta, datetime
 import os.path
 import re
+import desagregar as lib
 
 nwp_deterministic_tags = [
     'FDIR', 'CDIR', 'TCC', 'U10', 'V10', 'T2M', 'SSRD', 'SSR', 'SSRC', 'v10'
@@ -33,17 +34,28 @@ def query_cols(grid=None, latlons=None, tags=[]):
     return np.array([['({0}, {1}) {2}'.format(j, i, tag) for tag in tags]
                      for i, j in latlons]).flatten()
 
-def shape_data(data, lon_l, lon_r, lat_l, lat_r, variables, nsteps):
+def shape_data(data, lon_l, lon_r, lat_l, lat_r, variables, nsteps, fecha):
     idxlon = np.logical_and(data[:, 0] >= lon_l, data[:, 0] <= lon_r)
     idxlat = np.logical_and(data[:, 1] >= lat_l, data[:, 1] <= lat_r)
     idx = np.logical_and(idxlon, idxlat)
-    data = data[idx]
-
-    data = np.delete(data, np.s_[0:2], axis=1)
-    data = data.reshape((data.shape[0], nsteps, variables))
-    data = data.transpose((1, 0, 2))
-    data = data.reshape((nsteps, -1))
-    return data
+    data = data[idx] #se queda solo con las filas cuyas lat y lon estén dentro de un rango
+    
+    indice_fechas = lib.obtener_dia_completo(fecha,3)
+    matrix_final = pd.DataFrame()
+    
+    for i in range(data.shape[0]):
+        columnas = []
+        latlon = data[i][0:2]
+        columna_latlon = np.zeros((8,8))
+        for j in range(len(variables)):
+            columna_latlon[j] = data[i][j*8+2 : (j+1)*8+2]
+        for k in variables:
+            var = '(' + str(latlon[0]) + ', '+ str(latlon[1]) + ') ' + str(k)
+            columnas.append(var)
+        
+        matrix_parcial = pd.DataFrame(columna_latlon, index = indice_fechas, columns = columnas)
+        matrix_final = pd.concat([matrix_final, matrix_parcial], axis=1)
+    return matrix_final
 
 
 def group(x):
@@ -278,8 +290,7 @@ class DataMatrix(object):
 
             datas = np.load(files)
 
-            datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r,
-                               len(self.tags), nsteps)
+            datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r,len(self.tags), nsteps, fecha)
 
             index = self.query_index(date, date, 'H')
 
@@ -305,9 +316,8 @@ class DataMatrix(object):
         lon_l, lon_r = self.grid.get_lons()
         lat_l, lat_r = self.grid.get_lats()
 
-        for date in pd.date_range(
-                self.date - timedelta(days=delta), self.date, freq=freq):
-            df_ens = False
+        for date in pd.date_range(self.date - timedelta(days=delta), self.date, freq=freq):
+            #df_ens = False
             for ens in range(self.n_ens):
                 fecha = datetime.strftime(date, self.file_format)
                 files = self.path + fecha
@@ -319,24 +329,25 @@ class DataMatrix(object):
 
                 datas = np.load(files)
 
-                datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r,
-                                   len(self.tags), nsteps)
+                datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r, self.tags, nsteps, fecha)
 
-                index = self.query_index(date, date, '3H', ens)
-                cols = [c + ' {}'.format(ens) for c in self.cols]
+                #index = self.query_index(date, date, '3H', ens)
+                #cols = [c + ' {}'.format(ens) for c in self.cols]
 
-                df = pd.DataFrame(datas, index=index, columns=cols)
+                #df = pd.DataFrame(datas, index=index, columns=cols)
 
-                if isinstance(df_ens, bool):
-                    df_ens = df
-                else:
-                    df_ens = pd.concat([df_ens, df], join='outer', axis=1)
-            if isinstance(self.dataMatrix, bool):
-                self.dataMatrix = df_ens
-            else:
-                if not isinstance(df_ens, bool):
-                    self.dataMatrix = pd.concat(
-                        [self.dataMatrix, df_ens], join='outer', axis=0)
+#                if isinstance(df_ens, bool):
+#                    df_ens = df
+#                else:
+#                    df_ens = pd.concat([df_ens, df], join='outer', axis=1)
+#            if isinstance(self.dataMatrix, bool):
+#                self.dataMatrix = df_ens
+#            else:
+#                if not isinstance(df_ens, bool):
+#                    self.dataMatrix = pd.concat(
+#                        [self.dataMatrix, df_ens], join='outer', axis=0)
+        self.dataMatrix = datas
+        return datas
 
     def data_matrix_from_data_frame(self, df):
         '''

@@ -24,7 +24,7 @@ def main():
                 parametros = (i,j,k)
                 
                 program_args = (["sbatch", "-A", "gaa_serv", "-p", "gaa", "--mail-type=ALL", 
-                "--mail-user=edurne.castillo@estudiante.uam.es", SCRIPT, parametros])
+				"--mail-user=edurne.castillo@estudiante.uam.es", "--mem-per-cpu=50000", SCRIPT, str(parametros)])
                 print(" ".join(program_args))
                 subprocess.check_call(program_args)
 

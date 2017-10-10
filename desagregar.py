@@ -5,6 +5,7 @@ import numpy as np
 import sunrise as sr
 import libdata as ut
 from scipy.interpolate import CubicSpline
+from datetime import timedelta
 
 #%load_ext autoreload
 #%autoreload 2
@@ -16,18 +17,24 @@ from scipy.interpolate import CubicSpline
 #latlon = dm.select_pen_grid()
 #matrix_interpolada = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/edcastil/', '/gaa/home/edcastil/', ifexists = True, model='deterministic', suffix='.det_interpolado_cs', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
 
+#matrix_control=dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/data/solar_ecmwf/','/gaa/home/data/solar_ecmwf/',ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags)
+
+#matrix_control_crear=dm.DataMatrix(datetime.datetime(2013,1,1),'/gaa/home/edcastil/scripts/conversion/','/gaa/home/edcastil/scripts/conversion/',ifexists=False,model='ensembles',n_ens=1, suffix='.control', tags=dm.nwp_ensembles_tags, delta=1)
+
 def guardar_matriz(matriz, fecha, sufijo=''):
     '''Este método crea dos ficheros .npy, uno con los datos y otro con los nombres de las columnas de la matriz que se
     le haya pasado por parámetro. La fecha y el sufijo se usan para la creación del nombre del fichero según el formato:
     fecha_ultima_hora.mdata.sufijo y fecha_ultima_hora.mdata.sufijo.columns para el fichero de las columnas.'''
 
-    nombre_fichero = '/gaa/home/edcastil/'+ str(fecha) + '.mdata' + sufijo
+    nombre_fichero = '/gaa/home/edcastil/scripts/conversion'+ str(fecha) + '.mdata' + sufijo
     datos = np.hstack([matriz.index[:,np.newaxis], matriz.values])
     columnas = matriz.columns
     np.save(nombre_fichero, datos)
     print('Matriz guardada')
     nombre_fichero_columnas = nombre_fichero + '.columns'
     np.save(nombre_fichero_columnas,columnas)
+    
+
 
 def seleccionar_punto_rejilla(matrix, tags, latlon):
     '''Dada una matriz, el punto que se quiere obtener y las tags asociadas a ese punto, se devuelve
@@ -231,13 +238,14 @@ def MAE_diario(df_interpolado, df_original):
         fin_dia += 24
     return mae_dias
 
-def obtener_dia_completo(fecha):
-    '''Dada una fecha en formato YYYYMMDDHH entero, se devuelve una lista con todas las horas que conforman dicho día.
+def obtener_dia_completo(fecha, step):
+    '''Dada una fecha en formato YYYYMMDD entero, se devuelve una lista con todas las horas que conforman dicho día.
        Dicho de otra forma, se devuelve un índice para un día.
+       El parámetro step=1 para horario y step = 3 para trihorario
     '''
-    dia = str(fecha)[:8]
+    dia = str(fecha)
     indice = []
-    for i in range (24):
+    for i in range (0,24,step):
         if len(str(i)) < 2 :
             hora = '0' + str(i)
         else:
@@ -245,12 +253,16 @@ def obtener_dia_completo(fecha):
         indice.append(int(dia + hora))
     return indice
 
-def crear_indice_anio(inicio, fin):
+def crear_indice_anio(inicio, fin, tipo = 'd'):
     '''Dados dos datetime, devuelve el índice con todas las horas entre ellos'''
     index = []
     delta = fin - inicio
-    for i in range (0,int(delta.total_seconds()), 3600):
-        index.append(int((inicio + timedelta(hours = i/3600)).strftime("%Y%m%d%H")))
+    if tipo == 'h':
+        for i in range (0,int(delta.total_seconds()), 3600):
+            index.append(int((inicio + timedelta(hours = i/3600)).strftime("%Y%m%d%H")))
+    elif tipo == 'd':
+        for i in range (365):
+            index.append(int((inicio+timedelta(days = i)).strftime('%Y%m%d')))
     return index
 
 #prodsTotal = pd.read_csv('/gaa/home/alecat/data/prodsTotal.csv', index_col=0)
