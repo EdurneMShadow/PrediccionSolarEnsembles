@@ -5,6 +5,7 @@ import subprocess
 import sys
 import numpy as np
 import pandas as pd
+import time as t
 sys.path.insert(0, '/gaa/home/edcastil/scripts/')
 
 
@@ -27,6 +28,7 @@ def main():
 				"--mail-user=edurne.castillo@estudiante.uam.es", "--mem-per-cpu=50000", SCRIPT, str(parametros)])
                 print(" ".join(program_args))
                 subprocess.check_call(program_args)
+            t.sleep(86400)
 
 if __name__ == "__main__":
 	main()

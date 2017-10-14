@@ -20,11 +20,11 @@ for i in glob.glob("/gaa/home/edcastil/scripts/conversion/nc/*.nc"):
     subprocess.check_call(program_args)
     
 for i in glob.glob("/gaa/home/edcastil/scripts/conversion/myp/*"):
-    fecha = i[3] #TODO: ver cómo sacar la fecha del nombre del fichero
+    fecha = i[42:][:-8]
     f = datetime.datetime.strptime(fecha, '%Y%m%d')
-    matrix_control_dia = (dm.DataMatrix(f,
-    '/gaa/home/edcastil/scripts/conversion/myp','/gaa/home/edcastil/scripts/conversion/datamatrix',
-    ifexists=False,model='ensembles',n_ens=1, suffix='.control', tags=dm.nwp_ensembles_tags, delta=1))
+    matrix_control_dia = (dm.DataMatrix(f,'/gaa/home/edcastil/scripts/conversion/myp/',
+    '/gaa/home/edcastil/scripts/conversion/datamatrix/',ifexists=False,model='ensembles',
+    n_ens=1, suffix='.control', tags=dm.nwp_ensembles_tags, delta=0))
     matrix_control_dia.save_matrix(suffix = '.control')
     
 #MATRIZ 2013
@@ -37,7 +37,7 @@ matrix_2013 = pd.DataFrame()
 
 for i in dias:
     matrix_control = (dm.DataMatrix(datetime.datetime.strptime(i, '%Y%m%d'),
-    '/gaa/home/edcastil/scripts/conversion/datamatrix','/gaa/home/edcastil/scripts/conversion/datamatrix',
+    '/gaa/home/edcastil/scripts/conversion/datamatrix/','/gaa/home/edcastil/scripts/conversion/datamatrix/',
     ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags))
     
     matrix_control = matrix_control.dataMatrix

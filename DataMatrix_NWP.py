@@ -35,6 +35,7 @@ def query_cols(grid=None, latlons=None, tags=[]):
                      for i, j in latlons]).flatten()
 
 def shape_data(data, lon_l, lon_r, lat_l, lat_r, variables, nsteps, fecha):
+    '''Devuelve una matriz de un día en el formato normal'''
     idxlon = np.logical_and(data[:, 0] >= lon_l, data[:, 0] <= lon_r)
     idxlat = np.logical_and(data[:, 1] >= lat_l, data[:, 1] <= lat_r)
     idx = np.logical_and(idxlon, idxlat)
@@ -316,20 +317,21 @@ class DataMatrix(object):
         lon_l, lon_r = self.grid.get_lons()
         lat_l, lat_r = self.grid.get_lats()
 
-        for date in pd.date_range(self.date - timedelta(days=delta), self.date, freq=freq):
-            #df_ens = False
-            for ens in range(self.n_ens):
-                fecha = datetime.strftime(date, self.file_format)
-                files = self.path + fecha
-                files += "_{}.myp.npy".format(ens) if self.n_ens > 1 else ".myp.npy"
-                print(files)
+#        for date in pd.date_range(self.date - timedelta(days=delta), self.date, freq=freq):
+#            #df_ens = False
+#            for ens in range(self.n_ens):
+    #He quitado el bucle porque solo va a hacer una interacción, le paso unicamente un dia.
+        fecha = datetime.strftime(self.date, self.file_format)
+        files = self.path + fecha
+        files += "_{}.myp.npy".format(ens) if self.n_ens > 1 else ".myp.npy"
+        print(files)
 
-                if not os.path.isfile(files):
-                    continue
+#        if not os.path.isfile(files):
+#            continue
 
-                datas = np.load(files)
+        datas = np.load(files)
 
-                datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r, self.tags, nsteps, fecha)
+        datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r, self.tags, nsteps, fecha)
 
                 #index = self.query_index(date, date, '3H', ens)
                 #cols = [c + ' {}'.format(ens) for c in self.cols]

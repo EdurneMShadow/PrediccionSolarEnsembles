@@ -9,6 +9,7 @@ import DataMatrix_NWP as dm
 import datetime
 import pickle
 from datetime import timedelta
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
@@ -26,16 +27,16 @@ matrix_train = (dm.DataMatrix(datetime.datetime(2013,12,31),
 model='deterministic', suffix='.det_noacc_vmodule'))
 
 matrix_val = (dm.DataMatrix(datetime.datetime(2014,12,31), 
-'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
+'/gaa/home/edcastil/datos/', '/gaa/home/edcastil/datos/', ifexists = True, 
 model='deterministic', suffix='.det_noacc_vmodule'))
 
-matrix_test = (dm.DataMatrix(datetime.datetime(2015,12,31), 
-'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
-model='deterministic', suffix='.det_noacc_vmodule'))
+#matrix_test = (dm.DataMatrix(datetime.datetime(2015,12,31), 
+#'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
+#model='deterministic', suffix='.det_noacc_vmodule'))
 
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013.csv', index_col=0)
 prod_val = pd.read_csv('/gaa/home/edcastil/datos/Prod_2014.csv', index_col=0)
-prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015.csv', index_col=0)
+#prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015.csv', index_col=0)
 
 variables = list(matrix_train.dataMatrix.columns)
 target = prod_train.columns[0]
@@ -45,16 +46,16 @@ target = prod_train.columns[0]
 n_dimensiones = len(variables)
 x_train = matrix_train.dataMatrix.values
 x_val = matrix_val.dataMatrix.values
-x_test = matrix_test.dataMatrix.values
+#☺x_test = matrix_test.dataMatrix.values
 y_train = prod_train.values
 y_val = prod_val.values
-y_test = prod_test.values
+#y_test = prod_test.values
 
 #Escalado de datos
 scaler = StandardScaler()
 x_train_escalado = scaler.fit_transform(x_train)
 x_val_escalado = scaler.fit_transform(x_val)
-x_test_escalado = scaler.fit_transform(x_test)
+#x_test_escalado = scaler.fit_transform(x_test)
 
 '''SVR parametrizado'''
 parametros = eval(sys.argv[1])
@@ -69,6 +70,11 @@ y_pred = svr.predict(x_val_escalado)
 mae = mean_absolute_error(y_val, y_pred)
 
 lista_resultados = [parametros, mae]
-f = open('resultados_svr.txt', 'w')
-f.write(lista_resultados)
+lista_predicciones = [y_val, y_pred]
+nombre = 'resultados_svr_' + str(parametros) + '.txt'
+f = open(nombre, 'w')
+f.write(str(lista_resultados) + '\n')
 f.close()
+
+nombre = 'comparaciones_svr_' + str(parametros) + '.txt'
+pickle.dump(lista_predicciones, open( nombre, "wb" ))
