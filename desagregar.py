@@ -26,7 +26,7 @@ def guardar_matriz(matriz, fecha, sufijo=''):
     le haya pasado por parámetro. La fecha y el sufijo se usan para la creación del nombre del fichero según el formato:
     fecha_ultima_hora.mdata.sufijo y fecha_ultima_hora.mdata.sufijo.columns para el fichero de las columnas.'''
 
-    nombre_fichero = '/gaa/home/edcastil/scripts/conversion'+ str(fecha) + '.mdata' + sufijo
+    nombre_fichero = '/gaa/home/edcastil/scripts/conversion/'+ str(fecha) + '.mdata' + sufijo
     datos = np.hstack([matriz.index[:,np.newaxis], matriz.values])
     columnas = matriz.columns
     np.save(nombre_fichero, datos)

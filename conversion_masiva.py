@@ -28,46 +28,10 @@ for i in glob.glob("/gaa/home/edcastil/scripts/conversion/myp/*"):
     matrix_control_dia.save_matrix(suffix = '.control')
     
 #MATRIZ 2013
-inicio = datetime.datetime(2013,1,1)
-fin = datetime.datetime(2013,12,31)
-index = lib.crear_indice_anio(inicio,fin)
-dias = [str(i) for i in index]
-
-matrix_2013 = pd.DataFrame()
-
-for i in dias:
-    matrix_control = (dm.DataMatrix(datetime.datetime.strptime(i, '%Y%m%d'),
-    '/gaa/home/edcastil/scripts/conversion/datamatrix/','/gaa/home/edcastil/scripts/conversion/datamatrix/',
-    ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags))
-    
-    matrix_control = matrix_control.dataMatrix
-    matrix_2013 = pd.concat([matrix_2013, matrix_control])
-    
-lib.guardar_matriz(matrix_2013, index[-1], '.control')
-    
-    
+matrix_control = (dm.DataMatrix(datetime.datetime(2013,12,31),'/gaa/home/edcastil/scripts/conversion/myp/','/gaa/home/edcastil/scripts/conversion/',ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags, delta = 364))
+matrix_control.save_matrix(suffix=".control")
 #MATRIZ 2014
-inicio = datetime.datetime(2014,1,1)
-fin = datetime.datetime(2014,12,31)
-index = lib.crear_indice_anio(inicio,fin)
-dias = [str(i) for i in index]
-
-matrix_2014 = pd.DataFrame()
-
-for i in dias:
-    matrix_control = (dm.DataMatrix(datetime.datetime.strptime(i, '%Y%m%d'),
-    '/gaa/home/edcastil/scripts/conversion/datamatrix','/gaa/home/edcastil/scripts/conversion/datamatrix',
-    ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags))
-    
-    matrix_control = matrix_control.dataMatrix
-    matrix_2014 = pd.concat([matrix_2014, matrix_control])
-    
-lib.guardar_matriz(matrix_2014, index[-1], '.control')    
-    
-    
-    
-    
-    
-    
-    
-    
+matrix_control = (dm.DataMatrix(datetime.datetime(2014,12,31),
+'/gaa/home/edcastil/scripts/conversion/datamatrix/','/gaa/home/edcastil/scripts/conversion/',
+ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags, delta = 365))
+matrix_control.save_matrix(suffix=".control")
