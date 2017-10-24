@@ -331,12 +331,12 @@ class DataMatrix(object):
         
                 datas = np.load(files)
         
-                datas = shape_data(datas, lon_l, lon_r, lat_l, lat_r, self.tags, nsteps, fecha)
+                df = shape_data(datas, lon_l, lon_r, lat_l, lat_r, self.tags, nsteps, fecha)
 
-                index = self.query_index(date, date, '3H', ens)
-                cols = [c + ' {}'.format(ens) for c in self.cols]
-
-                df = pd.DataFrame(datas, index=index, columns=cols)
+#                index = self.query_index(date, date, '3H', ens)
+#                cols = [c + ' {}'.format(ens) for c in self.cols]
+#
+#                df = pd.DataFrame(datas, index=index, columns=cols)
 
                 if isinstance(df_ens, bool):
                     df_ens = df
@@ -346,9 +346,7 @@ class DataMatrix(object):
                 self.dataMatrix = df_ens
             else:
                 if not isinstance(df_ens, bool):
-                    self.dataMatrix = pd.concat(
-                        [self.dataMatrix, df_ens], join='outer', axis=0)
-        self.dataMatrix = datas
+                    self.dataMatrix = pd.concat([self.dataMatrix, df_ens], join='outer', axis=0)
         return datas
 
     def data_matrix_from_data_frame(self, df):
@@ -379,19 +377,14 @@ class DataMatrix(object):
                 files = self.path + \
                     date.strftime(self.file_format) + '.myp.npy'
                 if os.path.isfile(files):
-                    for hour in pd.date_range(
-                            start_date,
-                            end_date + timedelta(days=1) - timedelta(hours=1),
-                            freq=freq):
+                    for hour in pd.date_range(start_date,end_date + timedelta(days=1) - timedelta(hours=1),freq=freq):
                         ts = hour.strftime(self.date_format)
                         index.append(int(ts))
             else:
                 files = self.path + date.strftime(self.file_format)
                 files += '_0.myp.npy' if self.n_ens > 1 else ".myp.npy"
                 if os.path.isfile(files):
-                    for hour in pd.date_range(
-                            start_date, end_date + timedelta(days=1),
-                            freq=freq):
+                    for hour in pd.date_range(start_date, end_date + timedelta(days=1),freq=freq):
                         ts = hour.strftime(self.date_format)
                         index.append(int(ts))
                 # index = index[:-1]

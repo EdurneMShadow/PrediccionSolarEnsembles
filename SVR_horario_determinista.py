@@ -77,4 +77,4 @@ f.write(str(lista_resultados) + '\n')
 f.close()
 
 nombre = 'comparaciones_svr_' + str(parametros) + '.txt'
-pickle.dump(lista_predicciones, open( nombre, "wb" ))
+pickle.dump(lista_predicciones, open( nombre, "a" ))

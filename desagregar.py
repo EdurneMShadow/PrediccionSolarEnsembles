@@ -6,6 +6,7 @@ import sunrise as sr
 import libdata as ut
 from scipy.interpolate import CubicSpline
 from datetime import timedelta
+import time
 
 #%load_ext autoreload
 #%autoreload 2
@@ -238,7 +239,7 @@ def MAE_diario(df_interpolado, df_original):
         fin_dia += 24
     return mae_dias
 
-def obtener_dia_completo(fecha, step):
+def obtener_dia_completo(fecha, step=1):
     '''Dada una fecha en formato YYYYMMDD entero, se devuelve una lista con todas las horas que conforman dicho día.
        Dicho de otra forma, se devuelve un índice para un día.
        El parámetro step=1 para horario y step = 3 para trihorario
@@ -251,6 +252,25 @@ def obtener_dia_completo(fecha, step):
         else:
             hora = str(i)
         indice.append(int(dia + hora))
+    return indice
+
+def obtener_indice_luminoso(inicio, fin, step=1):
+    '''Dados dos datetimes con las fechas de inicio y fin se devuelve el índice entre esas
+       dos fechas con los dias entre las 6 y 21h.
+       El parámetro step=1 para horario y step = 3 para trihorario
+    '''
+    index_anio=[]
+    for hour in pd.date_range(inicio, fin,freq='D'):
+        index_anio.append(hour.strftime('%Y%m%d'))
+    indice = []
+    for j in index_anio:
+        dia = str(j)     
+        for i in range (6,22,step):
+            if len(str(i)) < 2 :
+                hora = '0' + str(i)
+            else:
+                hora = str(i)
+            indice.append(int(dia + hora))
     return indice
 
 def crear_indice_anio(inicio, fin, tipo = 'd'):
