@@ -24,11 +24,11 @@ import desagregar as lib
 #land_grid = dm.select_pen_grid()
 #pen_cols = dm.query_cols(latlons=land_grid,tags=tags)
 #submatrix = matrix_det_2013.dataMatrix[pen_cols]
-#nombre = '/gaa/home/edcastil/datos/20141231.mdata.det_resolucion.csv'
+#nombre = '/gaa/home/edcastil/datos/20151231.mdata.control_resolucion.csv'
 #inicio = datetime.datetime(2015,1,1)
 #fin = datetime.datetime(2015,12,31)
 
-def cambio_resolucion(matrix, tags, nombre, inicio, fin):
+def cambio_resolucion(matrix, tags, nombre, inicio, fin, step):
     columnas = []
     for i in matrix.columns:
         for j in tags:
@@ -43,7 +43,7 @@ def cambio_resolucion(matrix, tags, nombre, inicio, fin):
                     columnas.append(i)
                     break
     submatrix = matrix[columnas]
-    index = lib.obtener_indice_luminoso(inicio,fin,step=1)
+    index = lib.obtener_indice_luminoso(inicio,fin,step=step)
     
     submatrix = submatrix.loc[index]
     submatrix.to_csv(nombre)
