@@ -16,15 +16,9 @@ import desagregar as lib
 #tags_ens = ['FDIR', 'CDIR', 'TCC', 'U10', 'V10', 'T2M', 'SSRD', 'SSR']
 #tags_det = ['FDIR', 'CDIR', 'TCC', 'U10', 'V10', 'T2M', 'SSRD', 'SSR', 'SSRC', 'v10']
 #
-#matrix_det_2013 = (dm.DataMatrix(datetime.datetime(2013,12,31), 
-#'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
-#model='deterministic', suffix='.det_noacc_vmodule'))
+#matrix_det_2013 = (dm.DataMatrix(datetime.datetime(2013,12,31), '/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, model='deterministic', suffix='.det_noacc_vmodule'))
 
-#Obtener una submatriz con las coordenadas de la península
-#land_grid = dm.select_pen_grid()
-#pen_cols = dm.query_cols(latlons=land_grid,tags=tags)
-#submatrix = matrix_det_2013.dataMatrix[pen_cols]
-#nombre = '/gaa/home/edcastil/datos/20151231.mdata.control_resolucion.csv'
+#nombre = '/gaa/home/edcastil/datos/20151231.mdata.det_resolucion.csv'
 #inicio = datetime.datetime(2015,1,1)
 #fin = datetime.datetime(2015,12,31)
 
@@ -46,4 +40,9 @@ def cambio_resolucion(matrix, tags, nombre, inicio, fin, step):
     index = lib.obtener_indice_luminoso(inicio,fin,step=step)
     
     submatrix = submatrix.loc[index]
+    
+    if step == 1:
+        cols = np.load('/gaa/home/edcastil/datos/columnas_iguales.npy')
+        submatrix = submatrix[cols]
+    
     submatrix.to_csv(nombre)

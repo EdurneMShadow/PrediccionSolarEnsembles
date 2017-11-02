@@ -4,46 +4,38 @@
 import sys
 sys.path.insert(0, '/gaa/home/edcastil/scripts/')
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
 from sklearn.metrics import mean_squared_error, mean_absolute_error, make_scorer
-import DataMatrix_NWP as dm
 import pandas as pd
-import datetime
 import glob
 import pickle
 
-matrix_train = (dm.DataMatrix(datetime.datetime(2013,12,31), 
-'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
-model='deterministic', suffix='.det_noacc_vmodule'))
+matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.det_resolucion.csv', index_col=0)
+matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.det_resolucion.csv', index_col=0)
 
-matrix_test = (dm.DataMatrix(datetime.datetime(2015,12,31), 
-'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
-model='deterministic', suffix='.det_noacc_vmodule'))
+prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_resolucion.csv', index_col=0)
+prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_resolucion.csv', index_col=0)
 
-
-prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013.csv', index_col=0)
-prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015.csv', index_col=0)
-
-for i in glob.glob("/gaa/home/edcastil/scripts/resultados/*"):
+for i in glob.glob("/gaa/home/edcastil/scripts/resultados_resolucion/*"):
     f = open(i)
-    out = open('resultados_svr.txt', 'a')
+    out = open('resultados_svr_resolucion.txt', 'a')
     out.write(f.read())
     f.close()
 out.close()
     
-x_train = matrix_train.dataMatrix.values
-x_test = matrix_test.dataMatrix.values
+x_train = matrix_train.values
+x_test = matrix_test.values
 y_train = prod_train.values
 y_test = prod_test.values
 
 
-scaler = StandardScaler()
+scaler = MinMaxScaler()
 x_train_escalado = scaler.fit_transform(x_train)
-x_test_escalado = scaler.fit_transform(x_test)
+x_test_escalado = scaler.transform(x_test)
 
 errores = {}
-for linea in open('resultados_svr.txt'):
+for linea in open('resultados_svr_resolucion.txt'):
     linea = eval(linea)
     parametros = linea[0]
     mae = linea[1]
@@ -62,8 +54,11 @@ y_pred = svr.predict(x_test_escalado)
 mae = mean_absolute_error(y_test, y_pred)
 
 lista_predicciones = [y_test, y_pred]
-nombre = 'comparaciones_svr_test.txt'
-#pickle.dump(lista_predicciones, open(nombre, "a" ))
-print(lista_predicciones)
+nombre = 'comparaciones_svr_test.pkl'
+pickle.dump(lista_predicciones, open(nombre, 'wb' ))
 
-print('Error de test: ' + str(mae))
+nombre = 'resultados_test_resolucion.txt'
+f = open(nombre, 'w')
+f.write(clave + '\n')
+f.write('Error de test: ' + str(mae) + '\n')
+f.close()

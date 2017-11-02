@@ -481,8 +481,9 @@ class DataMatrix(object):
         a whole year or so, when a lot of dataMatrix are to be
         created.
         '''
-        file = self.out + \
-            self.date.strftime(self.date_format) + '.mdata' + suffix
-        data = np.hstack(
-            (self.dataMatrix.index[:, np.newaxis], self.dataMatrix.values))
+        file = self.out + self.date.strftime(self.date_format) + '.mdata' + suffix
+        data = np.hstack([self.dataMatrix.index[:, np.newaxis], self.dataMatrix.values])
+        columnas = self.dataMatrix.columns
         np.save(file, data)
+        nombre_fichero_columnas = file + '_columns'
+        np.save(nombre_fichero_columnas,columnas)

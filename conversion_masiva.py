@@ -31,7 +31,5 @@ for i in glob.glob("/gaa/home/edcastil/scripts/conversion/myp/*"):
 matrix_control = (dm.DataMatrix(datetime.datetime(2013,12,31),'/gaa/home/edcastil/scripts/conversion/myp/','/gaa/home/edcastil/scripts/conversion/',ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags, delta = 364))
 matrix_control.save_matrix(suffix=".control")
 #MATRIZ 2014
-matrix_control = (dm.DataMatrix(datetime.datetime(2014,12,31),
-'/gaa/home/edcastil/scripts/conversion/myp/','/gaa/home/edcastil/scripts/conversion/',
-ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags, delta = 364))
+matrix_control = (dm.DataMatrix(datetime.datetime(2014,12,31),'/gaa/home/edcastil/scripts/conversion/myp/','/gaa/home/edcastil/scripts/conversion/',ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags, delta = 364))
 matrix_control.save_matrix(suffix=".control")
