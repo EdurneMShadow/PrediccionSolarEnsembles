@@ -46,7 +46,7 @@ for i in errores.keys():
     if errores[i] < minimo_mae:
         minimo_mae = errores[i]
         clave = i
-print('Parámetros con menor MAE: ' + str(clave) + ' MAE: ' + str(minimo_mae))
+print('Parametros con menor MAE: ' + str(clave) + ' MAE: ' + str(minimo_mae))
 
 svr = SVR(C=clave[0], gamma=clave[2], epsilon=clave[1], kernel='rbf', shrinking = True, tol = 1.e-6)
 svr.fit(x_train_escalado,y_train)
@@ -59,6 +59,6 @@ pickle.dump(lista_predicciones, open(nombre, 'wb' ))
 
 nombre = 'resultados_test_resolucion.txt'
 f = open(nombre, 'w')
-f.write(clave + '\n')
+f.write(str(clave) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')
 f.close()
