@@ -29,9 +29,7 @@ assert (len(sys.argv) >= 2), 'Debe haber un argumento'
 matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.det_resolucion.csv', index_col=0)
 matrix_val = pd.read_csv('/gaa/home/edcastil/datos/20141231.mdata.det_resolucion.csv', index_col=0)
 
-#matrix_test = (dm.DataMatrix(datetime.datetime(2015,12,31), 
-#'/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, 
-#model='deterministic', suffix='.det_noacc_vmodule'))
+#matrix_test = (dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, model='deterministic', suffix='.det_noacc_vmodule'))
 
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_resolucion.csv', index_col=0)
 prod_val = pd.read_csv('/gaa/home/edcastil/datos/Prod_2014_resolucion.csv', index_col=0)
@@ -72,7 +70,7 @@ mae = mean_absolute_error(y_val, y_pred)
 
 lista_resultados = [parametros, mae]
 #lista_predicciones = [y_val, y_pred]
-nombre = '/gaa/home/edcastil/scripts/resultados_resolucion/resultados_svr_' + str(parametros) + '.txt'
+nombre = '/gaa/home/edcastil/scripts/resultados_resolucion_repe/resultados_svr_' + str(parametros) + '.txt'
 f = open(nombre, 'w')
 f.write(str(lista_resultados) + '\n')
 f.close()
