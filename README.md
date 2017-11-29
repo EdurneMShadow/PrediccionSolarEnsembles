@@ -24,8 +24,19 @@ Ficheros de resultados:
 * cambio_resolucion.py -> pasar a resolución 0.5 las matrices
 * DataMatrix_NWP.py -> librería para trabajar con las matrices
 * plots -> ejemplos para hacer plots
+* crear_matrices_trihorarias -> contiene un método para pasar de determinista horario a trihorario
 
 ## Experimento 02: Modelo SVR para matrices deterministas trihorarias
+Ficheros de implementación:
+* parametros_svr.py -> lanzar trabajos a la cola
+* SVR_trihorario_validacion.py -> validación
+* test_SVR_trihorario -> test
+* Analisis_resultados -> plots
+
+Ficheros de resultados:
+* resultados_svr_trihorario.txt -> validación
+* comparaciones_svr_test_trihorario.pkl -> lista con y_pred e y_test
+* resultados_test_trihorario.txt -> test
 
 
 

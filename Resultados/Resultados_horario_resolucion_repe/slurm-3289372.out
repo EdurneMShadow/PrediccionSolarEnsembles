@@ -1,0 +1,3 @@
+/home/edcastil/miniconda3/lib/python3.6/site-packages/sklearn/utils/validation.py:578: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)
+Parametros con menor MAE: (10.0, 0.42860043682455884, 0.0009578544061302681) MAE: 2.1179060916488326
