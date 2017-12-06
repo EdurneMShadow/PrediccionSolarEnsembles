@@ -47,7 +47,7 @@ mae = mean_absolute_error(y_val, y_pred)
 
 lista_resultados = [parametros, mae]
 #lista_predicciones = [y_val, y_pred]
-nombre = '/gaa/home/edcastil/scripts/resultados_trihorario/resultados_svr_trihorario_' + str(parametros) + '.txt'
+nombre = '/gaa/home/edcastil/scripts/resultados_trihorario_nparametros/resultados_svr_trihorario_' + str(parametros) + '.txt'
 f = open(nombre, 'w')
 f.write(str(lista_resultados) + '\n')
 f.close()

@@ -37,7 +37,7 @@ plt.xlabel('Horas')
 plt.ylabel('Radiación')
 plt.xticks(y)
 _ = plt.plot(y,x1, label = 'original')
-_ = plt.plot(y, z1, label = 'interpolado')
+_ = plt.plot(y,z1, label = 'interpolado')
 plt.legend(loc = 'best')
 
 plt.subplot(3, 2, 2)

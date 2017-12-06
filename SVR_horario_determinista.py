@@ -70,7 +70,7 @@ mae = mean_absolute_error(y_val, y_pred)
 
 lista_resultados = [parametros, mae]
 #lista_predicciones = [y_val, y_pred]
-nombre = '/gaa/home/edcastil/scripts/resultados_resolucion_repe/resultados_svr_' + str(parametros) + '.txt'
+nombre = '/gaa/home/edcastil/scripts/resultados_resolucion_repe_nparametros/resultados_svr_' + str(parametros) + '.txt'
 f = open(nombre, 'w')
 f.write(str(lista_resultados) + '\n')
 f.close()

@@ -17,7 +17,7 @@ y_train = prod_train.values
 def main():
     lista_C = [10.**k for k in range (0,5)]
     lista_gamma = list(np.array([2.**k for k in range(-2, 4)])/n_dimensiones)
-    lista_epsilon = list(y_train.std() * np.array([2.**k for k in range(-6, -2)]))
+    lista_epsilon = list(y_train.std() * np.array([2.**k for k in range(-10, -2)]))
     
     for i in lista_C:
         for j in lista_epsilon:

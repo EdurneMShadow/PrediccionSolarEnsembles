@@ -17,9 +17,9 @@ matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.det_trihorari
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_trihorario.csv', index_col=0)
 prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_trihorario.csv', index_col=0)
 
-for i in glob.glob("/gaa/home/edcastil/scripts/resultados_trihorario/*"):
+for i in glob.glob("/gaa/home/edcastil/scripts/resultados_trihorario_nparametros/*"):
     f = open(i)
-    out = open('resultados_svr_trihorario.txt', 'a')
+    out = open('resultados_svr_trihorario_nparametros.txt', 'a')
     out.write(f.read())
     f.close()
 out.close()
@@ -35,7 +35,7 @@ x_train_escalado = scaler.fit_transform(x_train)
 x_test_escalado = scaler.transform(x_test)
 
 errores = {}
-for linea in open('resultados_svr_trihorario.txt'):
+for linea in open('resultados_svr_trihorario_nparametros.txt'):
     linea = eval(linea)
     parametros = linea[0]
     mae = linea[1]
@@ -54,10 +54,10 @@ y_pred = svr.predict(x_test_escalado)
 mae = mean_absolute_error(y_test, y_pred)
 
 lista_predicciones = [y_test, y_pred]
-nombre = 'comparaciones_svr_test_trihorario.pkl'
+nombre = 'comparaciones_svr_test_trihorario_nparametros.pkl'
 pickle.dump(lista_predicciones, open(nombre, 'wb' ))
 
-nombre = 'resultados_test_trihorario.txt'
+nombre = 'resultados_test_trihorario_nparametros.txt'
 f = open(nombre, 'w')
 f.write(str(clave) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')

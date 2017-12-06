@@ -36,6 +36,7 @@ for [lat, lon, geo] in geopot.loc[:, ['Latitude', 'Longitude', 'Geopotential']].
 inicio = datetime.datetime(2015,1,1)
 fin = datetime.datetime(2016,1,1)
 index = lib.crear_indice_anio(inicio, fin, tipo='h')
+cs_total = cs_total.loc[cs_total.index[:-1]]
 
 cs_total.index = index
 cs_total.columns = cols

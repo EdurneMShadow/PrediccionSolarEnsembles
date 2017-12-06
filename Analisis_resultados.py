@@ -72,8 +72,9 @@ prod_train = pd.read_csv('Produccion/Prod_2015.csv', index_col=0)
 plt.title('Distribución de la producción en 2015')
 plt.xlabel('% de producción')
 plt.ylabel('n_horas')
-_ = plt.hist(prod_train.values)
-plt.savefig('Imagenes/produccion2015.png')
+plt.xticks(np.arange(0,81,5)) 
+_ = plt.hist(prod_train.values, bins = 41)
+plt.savefig('Imagenes/produccion2015_nuevo.png')
 
 #DataFrame MAE
 c = []
@@ -105,3 +106,20 @@ pickle.dump(par, open(nombre, 'wb' ))
 
 a = np.arange(1,11)
 par.loc[a]
+
+
+#Interpolación vs original
+y_test = pd.read_csv('Produccion/Prod_2015_resolucion.csv', index_col=0)
+y_interpolada = pd.read_csv('Resultados/Determinista_trihorario/y_interpolada_trihorario01.csv', index_col=0)
+h = np.arange(24)
+
+horas = np.arange(365*16)
+y = np.arange(100)
+a = y 
+plt.figure( figsize = (7, 6) )
+plt.title('y_pred vs y_test')
+plt.xlabel('y_interpolada')
+plt.ylabel('y_original')
+_ = plt.plot(y_interpolada.values, y_test.values, 'o')
+_ = plt.plot(a,y)
+plt.savefig('Imagenes/Determinista_trihorario/comparacion_interpolacion.png')
