@@ -68,13 +68,13 @@ _ = plt.plot(a,y)
 plt.savefig('Imagenes/Determinista_trihorario/comparacion.png')
 
 #Histogramas
-prod_train = pd.read_csv('Produccion/Prod_2015.csv', index_col=0)
-plt.title('Distribución de la producción en 2015')
+prod_train = pd.read_csv('Produccion/Prod_2015_resolucion.csv', index_col=0)
+plt.title('Distribución de la producción en 2015 sin noche')
 plt.xlabel('% de producción')
 plt.ylabel('n_horas')
 plt.xticks(np.arange(0,81,5)) 
 _ = plt.hist(prod_train.values, bins = 41)
-plt.savefig('Imagenes/produccion2015_nuevo.png')
+plt.savefig('Imagenes/produccion2015_resolucion_nuevo.png')
 
 #DataFrame MAE
 c = []
