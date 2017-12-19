@@ -288,15 +288,22 @@ def crear_indice_anio(inicio, fin, tipo = 'd'):
 
 def desagregar_control(df, anio):
     new_matrix = []
-    for i in range (0,df.shape[0],6):
-        index = df.index[i:i+6]
-        submatrix = df.loc[index]
-        new_index = np.arange(6)
-        submatrix.index = new_index
-        new_matrix.append(submatrix.loc[0])
-              
-        for h in range(1,6):
-            new_matrix.append(submatrix.loc[h] - submatrix.loc[h-1])
+    tags = ['FDIR', 'CDIR','SSRD', 'SSR']     
+    for j in df.columns:
+        var = j[-4:].strip()
+        if var in tags:     
+            for i in range (0,df.shape[0],6):        
+                index = df.index[i:i+6]
+                submatrix = df[j].loc[index]
+                new_index = np.arange(6)
+                submatrix.index = new_index
+                new_matrix.append(submatrix.loc[0])
+                      
+                for h in range(1,6):
+                    new_matrix.append(submatrix.loc[h] - submatrix.loc[h-1])
+        else: #no me convence, probar
+            for i in df.index:
+                new_matrix.append(df[j])
     inicio = datetime.datetime(anio,1,1)
     fin = datetime.datetime(anio,12,31)
     index_df = obtener_indice_luminoso(inicio, fin, step=3)

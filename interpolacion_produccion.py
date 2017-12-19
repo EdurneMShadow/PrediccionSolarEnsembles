@@ -1,60 +1,28 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Dec 14 12:59:11 2017
+#!/usr/bin/env python3
+# encoding: utf-8
 
-@author: Edurne
-"""
 import sys
+sys.path.insert(0, '/gaa/home/edcastil/scripts/')
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import datetime
+import desagregar as lib
 
 from scipy.interpolate import CubicSpline
 
-def main(prod, cs, cs_acc):
+def main(prod_3h, prod_h, cs, cs_acc):
    
-    prod_3h = acumular_trihorario(prod)
+    prod_3h_extendida = extender_trihorario_a_horario(prod_3h)
+    cs_acc[cs_acc['CS_H_mean'] == 0] = 1.0
+    cs_acc_h = extender_trihorario_a_horario(cs_acc)
+    prod_interpolada = interpolar(cs, cs_acc_h, prod_3h_extendida)
     
-    prod_interpolada = interpolar(prod_3h, cs, cs_acc)
-    
-    check(prod, prod_interpolada)
+    check(prod_h, prod_interpolada)
     
     return prod_interpolada
 
-def obtener_dia_completo(fecha):
-    '''Dada una fecha en formato YYYYMMDDHH entero, se devuelve una lista con todas las horas que conforman dicho día.
-       Dicho de otra forma, se devuelve un índice para un día.
-    '''
-    dia = str(fecha)[:8]
-    indice = []
-    for i in range (24):
-        if len(str(i)) < 2 :
-            hora = '0' + str(i)
-        else:
-            hora = str(i)
-        indice.append(int(dia + hora))
-    return indice
-
-def acumular_trihorario(df):
-    """Accumulates 3--hour values of var generating 8 values
-    with accumulations at hours 0, 3, 6, 9, 12, 15, 18 and 21.
-    Only works for the 0-UTC time zone.
-    Simplemente suma de tres en tres. Por ejemplo, en el 3, la suma es de 1,2,3
-    """
-    df_horario = list(df['Prod'])
-    
-    #está eliminando el primer valor y poniéndolo al final. La lista ahora va de 1 a 24.
-    var_aux = np.array(variable_horaria[1 : ] + [0.])
-    var_acc_3h = []
-
-    #recorre por las horas trihorarias
-    for h in range(8):
-        var_acc_3h.append(var_aux[3*h : 3*h+3].sum())
-        
-    #elimina el último elemento y añade un cero al inicio de la lista
-    var_acc_3h = [0.] + var_acc_3h[ : -1]
-    return np.array(var_acc_3h)     
-    
 def extender_trihorario_a_horario(var_acc_3h):
     """Giver  hourly values of a variable with 8 values accumulated every three hours.
     The values at hours h-2, h-1, h for 0, 3, 6, 9, 12, 15, 18 and 21 will be 
@@ -79,61 +47,30 @@ def extender_trihorario_a_horario(var_acc_3h):
     except AssertionError:
         print("argument must have 8 values")
 
-                
-def calcular_cs_trihorario_expandido(cs):
-    """Computes the denominator cs_acc in order to apply a CS interpolation of the form 
-    var_acc_int = var_acc * cs / cs_acc.
-    
-    cs can be any variable although 'CS H' is expected.
-    """
-    #acumula de tres en tres
-    cs_acc_3h = acumular_trihorario(cs)
-    #lo estira para que sean 24h.
-    cs_acc_h  = extender_trihorario_a_horario(cs_acc_3h)
 
-    #cambia los ceros por unos para que no haya problemas en la división.
-    cs_acc_h[ cs_acc_h == 0. ] = 1.
-
-    return cs_acc_h
-
-    
-def interpolar(var_radiacion_acc_3h, var_cs):
-    """Interpolates 3-hour accumulated values in var_1_3h w.r.
-    the hourly values in var_2_h.
-    
-    For instance var_1_acc could be 8 accumulated SSRD and var_2_h 24
-    hourly values.
-    """
+def interpolar(cs, cs_acc_h, y_pred_h):
     try:
         #comprueba que la primera variable sea trihoraria y la segunda sea horaria.
-        assert len(var_radiacion_acc_3h) == 8 and len(var_cs) == 24
-        var_radiacion_acc_h = extender_trihorario_a_horario(var_radiacion_acc_3h)
-        var_cs_acc_h = calcular_cs_trihorario_expandido(var_cs)
+        assert len(cs) == len(cs_acc_h) == len(y_pred_h)
         
-        return var_radiacion_acc_h * var_cs / var_cs_acc_h
-    
+        interpolada = y_pred_h.values * cs.values / cs_acc_h.values
+        inicio = datetime.datetime(2015,1,1)
+        fin = datetime.datetime(2015,12,31)
+        index_df = lib.obtener_indice_luminoso(inicio, fin, step=1)
+        df = pd.DataFrame(interpolada, index = index_df, columns = ['Produccion_interpolada'])
+        return df
     except AssertionError:
-        print("args must have 8 and 24 values respectively")
+        print("Los argumentos deben tener el mismo tamano")
     
-def check(var_original, var_interpolada, nombre_variable_radiacion):
-    print("MAE: ", abs(var_original - var_interpolada).mean())
-    print("RMAE: ", abs(var_original - var_interpolada).mean()/var_original.mean())
-    
-    y = np.arange(0,24,1)
-    plt.figure()
-    plt.title(nombre_variable_radiacion)
-    plt.xlabel('Horas')
-    plt.ylabel('Radiación')
-    _ = plt.plot(y,var_original, label = 'original')
-    _ = plt.plot(y, var_interpolada, label = 'interpolado')
-    plt.legend(loc = 'best')
-    nombre = 'Imagenes/'+ nombre_variable_radiacion + '_interpolado.pdf'
-    plt.savefig(nombre)
+def check(original, interpolada):
+    print("MAE: ", abs(original.values - interpolada.values).mean())
+    print("RMAE: ", abs(original.values - interpolada.values).mean()/original.values.mean())
 
     
 #################################################### main
 if __name__ == '__main__':
-    prod = pd.read_csv('Produccion/Prod_2015_resolucion.csv', index_col=0)
+    prod_3h = pd.read_csv('Produccion/Prod_2015_trihoraria.csv', index_col=0)
+    prod_h = pd.read_csv('Produccion/Prod_2015_resolucion.csv', index_col=0)
     cs = pd.read_csv('cs_2015_mean.csv', index_col=0)
     cs_acc = pd.read_csv('cs_acc_2015_mean.csv', index_col=0)
-    main(prod, cs, cs_acc)
+    main(prod_3h, prod_h, cs, cs_acc)
