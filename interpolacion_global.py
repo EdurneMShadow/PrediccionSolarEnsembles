@@ -93,7 +93,7 @@ if __name__ == '__main__':
     #Cargar datos
     cs = pd.read_csv('/gaa/home/edcastil/datos/cs_2015_mean.csv', index_col=0)
     cs_acc = pd.read_csv('/gaa/home/edcastil/datos/cs_acc_2015_mean.csv', index_col=0)
-    f = open('/gaa/home/edcastil/scripts/comparaciones_svr_test_trihorario.pkl', 'rb')
+    f = open('/gaa/home/edcastil/scripts/comparaciones_svr_test_trihorario_nparametros.pkl', 'rb')
     y_pred = pickle.load(f)
     y_pred = y_pred[1]
     y_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_resolucion.csv', index_col=0)

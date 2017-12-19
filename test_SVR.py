@@ -17,9 +17,9 @@ matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.det_resolucio
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_resolucion.csv', index_col=0)
 prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_resolucion.csv', index_col=0)
 
-for i in glob.glob("/gaa/home/edcastil/scripts/resultados_resolucion_repe_nparametros/*"):
+for i in glob.glob("/gaa/home/edcastil/scripts/resultados_resolucion_repe/*"):
     f = open(i)
-    out = open('resultados_svr_resolucion_repe_nparametros.txt', 'a')
+    out = open('resultados_svr_resolucion_repe_nparametros02.txt', 'a')
     out.write(f.read())
     f.close()
 out.close()
@@ -35,7 +35,7 @@ x_train_escalado = scaler.fit_transform(x_train)
 x_test_escalado = scaler.transform(x_test)
 
 errores = {}
-for linea in open('resultados_svr_resolucion_repe_nparametros.txt'):
+for linea in open('/gaa/home/edcastil/scripts/resultados_svr_resolucion_repe_nparametros02.txt'):
     linea = eval(linea)
     parametros = linea[0]
     mae = linea[1]
@@ -54,10 +54,10 @@ y_pred = svr.predict(x_test_escalado)
 mae = mean_absolute_error(y_test, y_pred)
 
 lista_predicciones = [y_test, y_pred]
-nombre = 'comparaciones_svr_test_repe_nparametros.pkl'
+nombre = 'comparaciones_svr_test_repe_nparametros02.pkl'
 pickle.dump(lista_predicciones, open(nombre, 'wb' ))
 
-nombre = 'resultados_test_resolucion_repe_nparametros.txt'
+nombre = 'resultados_test_resolucion_repe_nparametros02.txt'
 f = open(nombre, 'w')
 f.write(str(clave) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')

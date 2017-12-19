@@ -285,6 +285,24 @@ def crear_indice_anio(inicio, fin, tipo = 'd'):
             index.append(int((inicio+timedelta(days = i)).strftime('%Y%m%d')))
     return index
 
+
+def desagregar_control(df, anio):
+    new_matrix = []
+    for i in range (0,df.shape[0],6):
+        index = df.index[i:i+6]
+        submatrix = df.loc[index]
+        new_index = np.arange(6)
+        submatrix.index = new_index
+        new_matrix.append(submatrix.loc[0])
+              
+        for h in range(1,6):
+            new_matrix.append(submatrix.loc[h] - submatrix.loc[h-1])
+    inicio = datetime.datetime(anio,1,1)
+    fin = datetime.datetime(anio,12,31)
+    index_df = obtener_indice_luminoso(inicio, fin, step=3)
+    new_df = pd.DataFrame(new_matrix, index = index_df, columns = df.columns)
+    return new_df
+
 #prodsTotal = pd.read_csv('/gaa/home/alecat/data/prodsTotal.csv', index_col=0)
 #index_train = crear_indice_anio(datetime.datetime(2013,1,1), datetime.datetime(2014,1,1))
 #index_val = crear_indice_anio(datetime.datetime(2014,1,1), datetime.datetime(2015,1,1))

@@ -39,7 +39,8 @@ def main(var_no_radiacion, fecha):
     return var_no_radiacion_interpolada
 
 def obtener_dia_completo(fecha):
-    '''Dada una fecha en formato YYYYMMDDHH entero, se devuelve una lista con todas las horas que conforman dicho día.
+    '''Dada una fecha en formato YYYYMMDDHH entero, se devuelve una lista con todas las horas que conforman 
+       dicho día.
        Dicho de otra forma, se devuelve un índice para un día.
     '''
     dia = str(fecha)[:8]
@@ -60,6 +61,7 @@ def acumular_trihorario(variable_horaria):
     """
     try:
         assert len(variable_horaria) == 24
+            
         variable_horaria = list(variable_horaria)
         
         #está eliminando el primer valor y poniéndolo al final. La lista ahora va de 1 a 24.
@@ -67,8 +69,8 @@ def acumular_trihorario(variable_horaria):
         var_acc_3h = []
     
         #recorre por las horas trihorarias
-        for h in range(8):
-            var_acc_3h.append(var_aux[3*h : 3*h+3].sum())
+        for h in range(0, len(variable_horaria), 3):
+            var_acc_3h.append(var_aux[h])
             
         #elimina el último elemento y añade un cero al inicio de la lista
         var_acc_3h = [0.] + var_acc_3h[ : -1]
@@ -99,7 +101,7 @@ def check(var_original, var_interpolada, nombre_variable):
     _ = plt.plot(y,var_original, label = 'original')
     _ = plt.plot(y, var_interpolada, label = 'interpolado')
     plt.legend(loc = 'best')
-    nombre = 'Imagenes/'+ nombre_variable + '_interpolado_cubico.pdf'
+    nombre = 'Imagenes/'+ nombre_variable + '_interpolado_cubico02.pdf'
     plt.savefig(nombre)
     
    
@@ -113,7 +115,7 @@ if __name__ == '__main__':
         #var_2 = df['(-0.125. 38.625) ' + sys.argv[2]]
         #
         #print("imprimir vars...")
-        print(var_no_radiacion, fecha)
-        main(var_no_radiacion, fecha)
+        print(sys.argv[1], sys.argv[2])
+        main(sys.argv[1], sys.argv[2])
     else:
         print("args: nombre_1 fecha")

@@ -17,7 +17,7 @@ matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.det_trihorari
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_trihorario.csv', index_col=0)
 prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_trihorario.csv', index_col=0)
 
-for i in glob.glob("/gaa/home/edcastil/scripts/resultados_trihorario_nparametros/*"):
+for i in glob.glob("/gaa/home/edcastil/scripts/resultados_trihorario/*"):
     f = open(i)
     out = open('resultados_svr_trihorario_nparametros.txt', 'a')
     out.write(f.read())
@@ -61,4 +61,4 @@ nombre = 'resultados_test_trihorario_nparametros.txt'
 f = open(nombre, 'w')
 f.write(str(clave) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')
-f.close() 
+f.close()

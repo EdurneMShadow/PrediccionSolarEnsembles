@@ -61,4 +61,4 @@ nombre = 'resultados_test_control.txt'
 f = open(nombre, 'w')
 f.write(str(clave) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')
-f.close() 
+f.close()
