@@ -8,8 +8,8 @@ import pickle
 import numpy as np
 import pandas as pd
 
-ruta_imagen = 'Imagenes/Determinista_horario_epsilon/'
-ruta_resultados = 'Resultados/Determinista_horario_epsilon/'
+ruta_imagen = 'Imagenes/Control/'
+ruta_resultados = 'Resultados/Control/'
 
 ''''==========================================================================
                                 PLOTS PARÁMETROS
@@ -20,7 +20,7 @@ e = []
 g = []
 mae = []
 
-for linea in open(ruta_resultados + 'resultados_svr_resolucion_repe_nparametros02.txt'):
+for linea in open(ruta_resultados + 'resultados_svr_control.txt'):
     linea = eval(linea)
     parametros = linea[0]
     c.append(parametros[0])
@@ -54,13 +54,13 @@ plt.savefig(ruta_imagen + 'parametros_g.png')
     =======================================================================
 ''''
 #Prediccion vs original
-f = open(ruta_resultados + 'comparaciones_svr_test_repe_nparametros02.pkl', 'rb')
+f = open(ruta_resultados + 'comparaciones_svr_test_control.pkl', 'rb')
 lista_comparacion = pickle.load(f)
 y_test = lista_comparacion[0]
 y_pred = lista_comparacion[1]
 f.close()
 
-y = np.arange(100)
+y = np.arange(250)
 a = y 
 plt.figure( figsize = (7, 6) )
 plt.title('y_pred vs y_test')
@@ -95,7 +95,7 @@ c4 = pd.DataFrame(mae, columns=['MAE'])
 parametros = pd.concat([c1,c2,c3,c4], axis=1)
 
 par = parametros.sort(['MAE'], ascending=[True])
-index = np.arange(390)
+index = np.arange(240)
 par.index = index
 
 nombre = ruta_resultados + 'parametros_df.pkl'
@@ -125,7 +125,7 @@ plt.xlabel('y_interpolada')
 plt.ylabel('y_original')
 _ = plt.plot(y_interpolada.values, y_test.values, 'o')
 _ = plt.plot(a,y)
-plt.savefig(ruta_imagen + 'comparacion_interpolacion.png')
+plt.savefig(ruta_imagen + 'comparacion_interpolacion_control.png')
 
 
 ''''=======================================================================

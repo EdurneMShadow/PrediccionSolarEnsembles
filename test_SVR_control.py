@@ -11,8 +11,8 @@ import pandas as pd
 import glob
 import pickle
 
-matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.control_resolucion.csv', index_col=0)
-matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.control_resolucion.csv', index_col=0)
+matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.control_desagregado_resolucion.csv', index_col=0)
+matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.control_desagregado_resolucion.csv', index_col=0)
 
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_trihorario.csv', index_col=0)
 prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_trihorario.csv', index_col=0)
