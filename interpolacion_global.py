@@ -20,7 +20,7 @@ def main(y_pred, cs, cs_acc):
     cs_acc_h = extender_trihorario_a_horario(cs_acc)
     
     y_interpolada = interpolar(cs, cs_acc_h, y_pred_h)
-    y_interpolada.to_csv( 'y_interpolada_control.csv')
+    y_interpolada.to_csv( 'y_interpolada_cs.csv')
     check(y_test, y_interpolada)
 
 
@@ -36,7 +36,7 @@ def extender_trihorario_a_horario(matrix_3h):
         - 6 se queda igual
         - 7 y 8 van a tener el mismo valor que 9
         mode=0 -> y_pred
-        mode=1 -> cs_acc'''
+        mode=1 -> cs_acc''' 
 
     new_matrix = []
     for i in range (0,matrix_3h.shape[0],6):
@@ -96,5 +96,13 @@ if __name__ == '__main__':
     f = open('/gaa/home/edcastil/scripts/comparaciones_svr_test_control.pkl', 'rb')
     y_pred = pickle.load(f)
     y_pred = y_pred[1]
+#    f = open('y_pred_control_test.pkl', 'rb')
+#    y_pred = pickle.load(f)
+#    y_pred = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_trihorario.csv', index_col=0).values
+#    y_pred = y_pred.reshape(-1,)
+#    y_pred = pd.read_csv('/gaa/home/edcastil/datos/cs_acc_2015_mean.csv', index_col=0)
+#    y_pred = y_pred.values.reshape(-1,)
+#    print(y_pred.shape)
     y_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_resolucion.csv', index_col=0)
+    print(y_test.shape)
     main(y_pred, cs, cs_acc)

@@ -18,9 +18,11 @@ import time
 #latlon = dm.select_pen_grid()
 #matrix_interpolada = dm.DataMatrix(datetime.datetime(2015,12,31), '/gaa/home/edcastil/', '/gaa/home/edcastil/', ifexists = True, model='deterministic', suffix='.det_interpolado_cs', tags = ['FDIR', 'CDIR','SSRD', 'SSR', 'SSRC'], latlons = latlon)
 
-#matrix_control=dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/data/solar_ecmwf/','/gaa/home/data/solar_ecmwf/',ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags)
+#matrix_control = dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/data/solar_ecmwf/','/gaa/home/data/solar_ecmwf/',ifexists=True,model='ensembles',n_ens = 1, suffix='.control', tags = dm.nwp_ensembles_tags)
 
-#matrix_control_crear=dm.DataMatrix(datetime.datetime(2013,1,1),'/gaa/home/edcastil/scripts/conversion/','/gaa/home/edcastil/scripts/conversion/',ifexists=False,model='ensembles',n_ens=1, suffix='.control', tags=dm.nwp_ensembles_tags, delta=1)
+#matrix_control_crear = dm.DataMatrix(datetime.datetime(2013,1,1),'/gaa/home/edcastil/scripts/conversion/','/gaa/home/edcastil/scripts/conversion/',ifexists=False,model='ensembles',n_ens=1, suffix='.control', tags=dm.nwp_ensembles_tags, delta=1)
+
+#matrix_ens = dm.DataMatrix(datetime.datetime(2015,12,31),'/gaa/home/data/solar_ecmwf/','/gaa/home/data/solar_ecmwf/',ifexists=True,model='ensembles',n_ens = 50, suffix='.ens', tags = dm.nwp_ensembles_tags)
 
 def guardar_matriz(matriz, fecha, sufijo=''):
     '''Este método crea dos ficheros .npy, uno con los datos y otro con los nombres de las columnas de la matriz que se
@@ -287,11 +289,13 @@ def crear_indice_anio(inicio, fin, tipo = 'd'):
 
 
 def desagregar_control(df):
-    tags = ['FDIR', 'CDIR','SSRD', 'SSR']     
+    tags = ['FDIR', 'CDIR','SSRD', 'SSR']    
     for j in df.columns:
-        var = j[-4:].strip()
+        var = j[-7:].strip()
+        var = var[:-2].strip()
+        var = var.replace(') ', '')
         new_column = []
-        if var in tags:     
+        if var in tags:
             for i in range (0,df.shape[0],6):        
                 index = df.index[i:i+6]
                 submatrix = df[j].loc[index]

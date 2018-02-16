@@ -18,7 +18,7 @@ import desagregar as lib
 #
 #matrix_det_2013 = (dm.DataMatrix(datetime.datetime(2013,12,31), '/gaa/home/data/solar_ecmwf/', '/gaa/home/data/solar_ecmwf/', ifexists = True, model='deterministic', suffix='.det_noacc_vmodule'))
 
-#nombre = '/gaa/home/edcastil/datos/20151231.mdata.det_resolucion.csv'
+#nombre = '/gaa/home/edcastil/datos/20151231.mdata.ens.csv'
 #inicio = datetime.datetime(2015,1,1)
 #fin = datetime.datetime(2015,12,31)
 

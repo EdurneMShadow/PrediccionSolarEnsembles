@@ -74,5 +74,5 @@ def convert_ensembles(src, dst):
 
 if __name__ == '__main__':
     f = sys.argv[1]
-    output = '/gaa/home/edcastil/scripts/conversion/myp/'
+    output = '/gaa/home/edcastil/scripts/conversion2015/myp/'
     convert_deterministic(f, output)

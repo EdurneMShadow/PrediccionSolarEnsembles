@@ -12,7 +12,7 @@ import glob
 import pickle
 
 matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.control_desagregado_resolucion.csv', index_col=0)
-matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.control_desagregado_resolucion.csv', index_col=0)
+matrix_test = pd.read_csv('/gaa/home/edcastil/datos/20151231.mdata.control_nuevo_desagregado.csv', index_col=0)
 
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_trihorario.csv', index_col=0)
 prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_trihorario.csv', index_col=0)
@@ -49,11 +49,12 @@ for i in errores.keys():
 print('Parametros con menor MAE: ' + str(clave) + ' MAE: ' + str(minimo_mae))
 
 svr = SVR(C=clave[0], gamma=clave[2], epsilon=clave[1], kernel='rbf', shrinking = True, tol = 1.e-6)
-svr.fit(x_train_escalado,y_train)
+svr.fit(x_train_escalado,y_train.ravel())
+#y_train_pred = svr.predict(x_train_escalado)
 y_pred = svr.predict(x_test_escalado)
 mae = mean_absolute_error(y_test, y_pred)
 
-lista_predicciones = [y_test, y_pred]
+lista_predicciones = [y_train, y_pred]
 nombre = 'comparaciones_svr_test_control.pkl'
 pickle.dump(lista_predicciones, open(nombre, 'wb' ))
 
