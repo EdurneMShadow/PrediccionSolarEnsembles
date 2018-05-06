@@ -11,10 +11,10 @@ import pandas as pd
 import numpy as np
 import desagregar as lib
 
-nombre_parcial = '/gaa/home/edcastil/datos/20151231.mdata.ens_'
-
-for i in range(50):
-    nombre = nombre_parcial + str(i) + '.csv'
-    data = pd.read_csv(nombre, index_col=0)
-    nuevo = lib.desagregar_control(data)
-    nuevo.to_csv('/gaa/home/edcastil/datos/20151231.mdata.ens_desacc_' + str(i) + '.csv')
+#nombre_parcial = '/gaa/home/edcastil/datos/20151231.mdata.ens_'
+def desagregar(nombre_actual, nuevo_nombre):
+#    for i in range(50):
+#        nombre = nombre_parcial + str(i) + '.csv'
+        data = pd.read_csv(nombre_actual, index_col=0)
+        nuevo = lib.desagregar_control(data)
+        nuevo.to_csv(nuevo_nombre)

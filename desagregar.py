@@ -289,23 +289,24 @@ def crear_indice_anio(inicio, fin, tipo = 'd'):
 
 
 def desagregar_control(df):
-    tags = ['FDIR', 'CDIR','SSRD', 'SSR']    
+    tags = ['fdir', 'cdir','ssrd', 'ssr']    
     for j in df.columns:
-        var = j[-7:].strip()
-        var = var[:-2].strip()
-        var = var.replace(') ', '')
-        new_column = []
-        if var in tags:
-            for i in range (0,df.shape[0],6):        
-                index = df.index[i:i+6]
-                submatrix = df[j].loc[index]
-                new_index = np.arange(6)
-                submatrix.index = new_index
-                new_column.append(submatrix.loc[0])
-                      
-                for h in range(1,6):
-                    new_column.append(submatrix.loc[h] - submatrix.loc[h-1])
-            df[j] = new_column
+        for k in tags:
+            if j.find(k) is not -1:
+#        var = j[-7:].strip()
+#        var = var[:-2].strip()
+#        var = var.replace(') ', '')
+                new_column = []
+                for i in range (0,df.shape[0],6):        
+                    index = df.index[i:i+6]
+                    submatrix = df[j].loc[index]
+                    new_index = np.arange(6)
+                    submatrix.index = new_index
+                    new_column.append(submatrix.loc[0])
+                          
+                    for h in range(1,6):
+                        new_column.append(submatrix.loc[h] - submatrix.loc[h-1])
+                df[j] = new_column
 
     return df
 

@@ -55,3 +55,15 @@ Ficheros de resultados:
 * resultados_svr_control.txt -> validación
 * comparaciones_svr_test_control.pkl -> lista con y_pred e y_test
 * resultados_test_control.txt -> test
+
+## Experimento 04: Modelo SVR para ensembles (50)
+Ficheros de implementación:
+* ejecutar_ensembles.py -> lanzar trabajos a la cola
+* SVR_ensembles.py -> test
+* interpolacion_global -> interpolación
+* Analisis_resultados -> plots
+
+Ficheros de resultados:
+* resultados_svr_ensembles_<n_ensemble>.txt -> validación
+* comparaciones_svr_ensembles_<n_ensemble>.pkl -> lista con y_pred e y_test
+* resultados_ensembles_<n_ensemble>.txt -> test

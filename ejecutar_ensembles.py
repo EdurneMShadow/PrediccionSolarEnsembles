@@ -18,7 +18,7 @@ SCRIPT = "/gaa/home/edcastil/scripts/SVR_ensembles.py"
 
 def main():
     for i in range (50):
-        nombre = nombre_parcial + '_desacc_' + str(i) + '.csv'
+        nombre = nombre_parcial + 'desacc_' + str(i) + '.csv'
         n_ensemble = str(i)
         program_args = (["sbatch", "-A", "gaa_serv", "-p", "gaa", "--mail-type=ALL", 
 				"--mail-user=edurne.castillo@estudiante.uam.es", "--mem-per-cpu=50000", SCRIPT, nombre, n_ensemble])
