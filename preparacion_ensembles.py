@@ -17,18 +17,18 @@ name = sys.argv[1]
 tags_ens = ['fdir', 'cdir', 'tcc', 'u10', 'v10', 't2m', 'ssrd', 'ssr']
 inicio = datetime.datetime(2015,1,1)
 fin = datetime.datetime(2015,12,31) 
-nombre_parcial = '/gaa/home/edcastil/datos/ensembles/20151231.mdata.ens_'
+nombre_parcial = '/gaa/home/edcastil/datos/ensembles_nuevos/20151231.mdata.ens_'
 
 #for name in glob.glob("/gaa/home/alecat/edurne_ens/dfs/*"):
-df = pd.read_csv(name, index_col=1)
+df = pd.read_csv(name, index_col=0)
 #df_resolucion = cr.cambio_resolucion(df, tags_ens, "NOMBRE", inicio, fin, step=3)
 
 columnas = []
 for i in df.columns:
     for j in tags_ens:
         if i.find(j) is not -1:
-            ens_number = i[-2:]
-            no_number = i[:-2]
+            ens_number = i[-1:]
+            no_number = i[:-1]
             pos = no_number.find('(')
             coor = eval(no_number[pos:])
             lon = coor[0]

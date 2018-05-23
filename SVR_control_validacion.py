@@ -12,8 +12,8 @@ from sklearn.metrics import mean_absolute_error
 
 assert (len(sys.argv) >= 2), 'Debe haber un argumento'
 
-matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.control_desagregado_resolucion.csv', index_col=0)
-matrix_val = pd.read_csv('/gaa/home/edcastil/datos/20141231.mdata.control_desagregado_resolucion.csv', index_col=0)
+matrix_train = pd.read_csv('/gaa/home/edcastil/datos/control/20131231.mdata.control_desagregado_resolucion.csv', index_col=0)
+matrix_val = pd.read_csv('/gaa/home/edcastil/datos/control/20141231.mdata.control_desagregado_resolucion.csv', index_col=0)
 
 prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_trihorario.csv', index_col=0)
 prod_val = pd.read_csv('/gaa/home/edcastil/datos/Prod_2014_trihorario.csv', index_col=0)

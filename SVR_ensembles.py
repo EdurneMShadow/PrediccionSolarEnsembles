@@ -20,11 +20,12 @@ fichero = sys.argv[1]
 n_ensemble = sys.argv[2]
 
 
-matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.control_ens.csv', index_col=0)
+#matrix_train = pd.read_csv('/gaa/home/edcastil/datos/20131231.mdata.control_ens.csv', index_col=0) #desagregado_resolucion
+matrix_train = pd.read_csv('/gaa/home/edcastil/datos/control/20131231.mdata.control_desagregado_resolucion.csv', index_col=0)
 matrix_test = pd.read_csv(fichero, index_col=0)
 
-prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_ens.csv', index_col=0)
-prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_ens.csv', index_col=0)
+prod_train = pd.read_csv('/gaa/home/edcastil/datos/Prod_2013_trihorario.csv', index_col=0)
+prod_test = pd.read_csv('/gaa/home/edcastil/datos/Prod_2015_trihorario.csv', index_col=0)
 
 x_train = matrix_train.values
 x_test = matrix_test.values
@@ -44,10 +45,10 @@ y_pred = svr.predict(x_test_escalado)
 mae = mean_absolute_error(y_test, y_pred)
 
 #lista_predicciones = [y_train, y_pred]
-nombre = 'comparaciones_svr_ensemble_desacc_' + n_ensemble + '.pkl'
+nombre = 'comparaciones_svr_ensemble_' + n_ensemble + '.pkl'
 pickle.dump(y_pred, open(nombre, 'wb' ))
 
-nombre = 'resultados_ensemble_desacc_' + n_ensemble + '.txt'
+nombre = 'resultados_ensemble_' + n_ensemble + '.txt'
 f = open(nombre, 'w')
 f.write(str(parametros) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')
