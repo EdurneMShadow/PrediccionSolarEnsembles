@@ -34,10 +34,11 @@ y_test = prod_test.values
 
 
 scaler = MinMaxScaler()
-x_train_escalado = scaler.fit_transform(x_train)
-x_test_escalado = scaler.transform(x_test)
+x_train_escalado = scaler.fit_transform(x_train.values.astype(float))
+x_test_escalado = scaler.transform(x_test.values.astype(float))
 
-parametros = (100.0, 0.15473252272286195, 0.0009578544061302681)
+#parametros = (100.0, 0.15473252272286195, 0.0009578544061302681)
+parametros = (100.0, 0.0774, 0.00010)
 
 svr = SVR(C=parametros[0], gamma=parametros[2], epsilon=parametros[1], kernel='rbf', shrinking = True, tol = 1.e-6)
 svr.fit(x_train_escalado,y_train.ravel())
@@ -45,10 +46,10 @@ y_pred = svr.predict(x_test_escalado)
 mae = mean_absolute_error(y_test, y_pred)
 
 #lista_predicciones = [y_train, y_pred]
-nombre = 'comparaciones_svr_ensemble_' + n_ensemble + '.pkl'
+nombre = '/gaa/home/edcastil/scripts/resultados_ensembles_nuevos/comparaciones_svr_ensemble_' + n_ensemble + '.pkl'
 pickle.dump(y_pred, open(nombre, 'wb' ))
 
-nombre = 'resultados_ensemble_' + n_ensemble + '.txt'
+nombre = '/gaa/home/edcastil/scripts/resultados_ensembles_nuevos/resultados_ensemble_' + n_ensemble + '.txt'
 f = open(nombre, 'w')
 f.write(str(parametros) + '\n')
 f.write('Error de test: ' + str(mae) + '\n')
